@@ -1,0 +1,14 @@
+{
+  "name": "lotsawa",
+  "version": "1.0.0",
+  "description": "",
+  "main": "par.js",
+  "author": "Aria Stewart <aredridel@dinhe.net>",
+  "license": "ISC",
+  "dependencies": {
+    "bitmv": "^1.3.0"
+  },
+  "scripts": {
+    "test": "node index.js"
+  }
+}
