@@ -125,6 +125,8 @@ function parse(grammar, toParse) {
       completions: []
     };
 
+    scan(i);
+
     complete(i);
 
     console.log(dump_table(grammar, table[i]));
@@ -155,7 +157,7 @@ function parse(grammar, toParse) {
     return predictions;
   }
 
-  function complete(i) {
+  function scan(i) {
     bv_scan(table[i].predictions, function(ruleNo) {
       if (bv_bit_test(grammar.sympred[symbolOf(toParse[i])], grammar[ruleNo].symbols[0])) {
         table[i].completions.push({
@@ -163,15 +165,12 @@ function parse(grammar, toParse) {
           pos: 0,
           origin: i
         });
-        console.log('completed ', ruleNo, 'at pos 0 with symbols', grammar[ruleNo].symbols[0]);
+        console.log('scanned ', ruleNo, 'at pos 0 with symbols', grammar[ruleNo].symbols[0]);
       }
     });
-
-    console.log('completing prior additions');
-    complete_table(i);
   }
 
-  function complete_table(i) {
+  function complete(i) {
     var ent = table[i - 1];
     if (ent)
       for (var j = 0; j < ent.completions.length; j++) {
