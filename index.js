@@ -127,7 +127,9 @@ function parse(grammar, toParse) {
 
     scan(i);
 
-    complete(i);
+    if (i > 0) {
+      complete(i);
+    }
 
     console.log(dump_table(grammar, table[i]));
   }
@@ -172,18 +174,17 @@ function parse(grammar, toParse) {
 
   function complete(i) {
     var ent = table[i - 1];
-    if (ent)
-      for (var j = 0; j < ent.completions.length; j++) {
-        var ruleNo = ent.completions[j].ruleNo;
-        var pos = ent.completions[j].pos + 1;
-        console.log('trying completion', j, 'at', pos, grammar[ruleNo].symbols, 'against', symbolOf(toParse[i]));
-        if (~grammar.sympred[grammar.symbols.indexOf(toParse[i])].indexOf(grammar[ruleNo].symbols[pos])) {
-          table[i].completions.push({
-            ruleNo: ruleNo,
-            pos: pos,
-            origin: i - 1
-          });
-        }
+    for (var j = 0; j < ent.completions.length; j++) {
+      var ruleNo = ent.completions[j].ruleNo;
+      var pos = ent.completions[j].pos + 1;
+      console.log('trying completion', j, 'at', pos, grammar[ruleNo].symbols, 'against', symbolOf(toParse[i]));
+      if (~grammar.sympred[grammar.symbols.indexOf(toParse[i])].indexOf(grammar[ruleNo].symbols[pos])) {
+        table[i].completions.push({
+          ruleNo: ruleNo,
+          pos: pos,
+          origin: i - 1
+        });
+      }
     }
   }
 
