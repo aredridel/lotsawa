@@ -1,14 +1,14 @@
 {
   "name": "lotsawa",
   "version": "1.0.0",
-  "description": "",
-  "main": "par.js",
+  "description": "An implementation of the Marpa parsing algorithm",
+  "main": "index.js",
   "author": "Aria Stewart <aredridel@dinhe.net>",
   "license": "ISC",
   "dependencies": {
-    "bitmv": "^1.5.0"
+    "bitmv": "^1.6.1"
   },
   "scripts": {
-    "test": "node index.js"
+    "test": "node test.js"
   }
 }

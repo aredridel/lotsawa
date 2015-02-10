@@ -9,7 +9,6 @@ function Grammar(rules) {
   rules.push(Rule('_start', [Ref('start')]));
 
   rules.symbols = censusSymbols();
-  rules.predictable = generatePredictionMatrix();
   rules.sympred = generateSymbolMatrix();
 
   function censusSymbols() {
@@ -34,38 +33,18 @@ function Grammar(rules) {
     return out;
   }
 
-  function generatePredictionMatrix() {
-    var predictable = bitmv.matrix(rules.length, rules.length);
-
-    // Build a matrix of what rules predict what other rules, so we can just jump straight to the
-    // answer rather than having to do these loops at each pass. Bitsets are fun.
-    rules.forEach(function(r, i) {
-      rules.forEach(function(s, j) {
-        if (r.symbols[0] != null && r.symbols[0] == s.sym) {
-          bv_bit_set(predictable[i], j);
-        }
-      });
-    });
-    bitmv.transitiveClosure(predictable);
-
-    console.log('predictions');
-    console.log(bitmv.dump(predictable));
-
-    return predictable;
-  }
-
   function generateSymbolMatrix() {
     var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
 
-    // Build a matrix of what rules predict what other rules, so we can just jump straight to the
+    // Build a matrix of what symbols predict what other symbols, so we can just jump straight to the
     // answer rather than having to do these loops at each pass. Bitsets are fun.
-    rules.symbols.forEach(function(sym, i) {
+    rules.symbols.forEach(function(name, sym) {
       rules.forEach(function(r, j) {
-        if (r.symbols[0] != null && r.symbols[0] == i) {
-          bv_bit_set(predictable[j], r.sym);
+        if (r.symbols[0] != null && r.symbols[0] == sym) {
+          bv_bit_set(predictable[sym], r.sym);
         }
       });
-      bv_bit_set(predictable[i], sym); // ?
+      bv_bit_set(predictable[sym], sym);
     });
     bitmv.transitiveClosure(predictable);
 
@@ -76,22 +55,27 @@ function Grammar(rules) {
     return predictable;
   }
 
-  rules.predictions_for_symbols = {};
+  function generatePredictionMatrix() {
+    var predictable = bitmv.matrix(rules.symbols.length, rules.length);
+    rules.forEach(function(r, j) {
+      rules.forEach(function(s, k) {
+        if (r.symbols[0] != null && r.symbols[0] == s.sym) {
+          bv_bit_set(predictable[r.sym], k);
+        }
+      });
 
-  rules.forEach(function(r, ruleNo) {
-    console.log('rule', ruleNo, 'symbols', r.symbols, r.name);
+      bv_bit_set(predictable[r.sym], j);
+    });
 
-    if (!rules.predictions_for_symbols[r.name]) {
-      rules.predictions_for_symbols[r.name] = bitmv.vector(rules.length);
-      bv_bit_set(rules.predictions_for_symbols[r.name], ruleNo);
-    }
-    bv_or_assign(rules.predictions_for_symbols[r.name], rules.predictable[ruleNo]);
-  });
+    bitmv.transitiveClosure(predictable);
 
-  for (var r in rules.predictions_for_symbols) {
-    console.log(r, bitmv.dumpv(rules.predictions_for_symbols[r]));
+    return predictable;
   }
 
+  rules.predictions_for_symbols = generatePredictionMatrix();
+
+  console.log('predictions_for_symbols');
+  console.log(bitmv.dump(rules.predictions_for_symbols));
 
   return rules;
 }
@@ -117,22 +101,21 @@ function Terminal(symbol) {
 }
 
 function parse(grammar, toParse) {
-  var table = new Array(toParse.length + 1);
+  var table = new Array(toParse.length);
 
   for (var i = 0; i < toParse.length; i++) {
-    console.log('set', i);
+    console.log('set', i, toParse[i], 'sym', symbolOf(toParse[i]));
     table[i] = {
       predictions: predict(i),
       completions: []
     };
 
-    scan(i);
+    scan(i); // Fixme. That there's no set-1 is breaking scanning.
 
-    if (i > 0) {
-      complete(i);
-    }
+    complete(i);
 
     console.log(dump_table(grammar, table[i]));
+
   }
 
   function justcompletions(e) {
@@ -143,15 +126,17 @@ function parse(grammar, toParse) {
     var predictions = bitmv.vector(grammar.length);
     var prev = table[i - 1];
     if (!prev) {
-      console.log('predicting start rule');
-      bv_or_assign(predictions, grammar.predictions_for_symbols._start);
+      //console.log('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
+      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
+      //console.log(bitmv.dumpv(predictions));
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
         var ruleNo = prev.completions[j].ruleNo;
         var pos = prev.completions[j].pos;
-        console.log('predicting', ruleNo, 'at pos', pos, grammar[ruleNo]);
+        var sym = grammar[ruleNo].symbols[pos];
         if (grammar[ruleNo].symbols.length > pos) {
-          bv_or_assign(predictions, grammar.sympred[grammar[ruleNo].symbols[pos]] || []);
+          //console.log('predicting', ruleNo, 'at pos', pos, grammar[ruleNo], sym);
+          bv_or_assign(predictions, grammar.predictions_for_symbols[grammar[ruleNo].symbols[pos - 1]]);
         }
       }
     }
@@ -160,40 +145,71 @@ function parse(grammar, toParse) {
   }
 
   function scan(i) {
+    var sym = symbolOf(toParse[i]);
+    if (!~sym) return;
     bv_scan(table[i].predictions, function(ruleNo) {
-      if (bv_bit_test(grammar.sympred[symbolOf(toParse[i])], grammar[ruleNo].symbols[0])) {
+      if (bv_bit_test(grammar.sympred[sym], grammar[ruleNo].symbols[0])) {
         table[i].completions.push({
           ruleNo: ruleNo,
           pos: 1,
-          origin: i
+          origin: i - 1
         });
-        console.log('scanned ', ruleNo, 'at pos 0 with symbols', grammar[ruleNo].symbols[0]);
       }
     });
+
+    // Advance rules
+    var prev = table[i - 1];
+
+    if (!prev) return;
+    for (var j = 0; j < prev.completions.length; j++) {
+      if (grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos] == sym) {
+        table[i].completions.push({
+          ruleNo: prev.completions[j].ruleNo,
+          pos: prev.completions[j].pos + 1,
+          origin: prev.completions[j].origin
+        });
+      }
+    }
   }
 
   function complete(i) {
-    var ent = table[i];
-    for (var j = 0; j < ent.completions.length; j++) {
-      var ruleNo = ent.completions[j].ruleNo;
-      var pos = ent.completions[j].pos;
-      var origin = ent.completions[j].origin;
-      if (pos == grammar[ruleNo].symbols.length) {
-          console.log(table[origin].completions);
-        for (var k = 0; k < table[origin].completions.length; k++) {
-          var candidate = table[origin].completions[k];
-          var sym = grammar[candidate.ruleNo].symbols[candidate.pos];
-          console.log('sym', sym);
-          if (sym == grammar[ruleNo].sym) {
-            table[i].push(candidate);
-          }
+    var cur = table[i];
+    for (var j = 0; j < cur.completions.length; j++) {
+      /*jshint loopfunc:true*/
+      var ruleNo = cur.completions[j].ruleNo;
+      var pos = cur.completions[j].pos;
+      var origin = cur.completions[j].origin;
+      var sym = grammar[ruleNo].sym;
+      if (!~origin) continue;
+      if (pos < grammar[ruleNo].symbols.length) continue;
+      //console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
+      bv_scan(table[origin].predictions, function(predictedRuleNo) {
+        //console.log('try', predictedRuleNo, grammar[predictedRuleNo]);
+        if (grammar[predictedRuleNo].symbols[0] == sym) {
+          cur.completions.push({
+            ruleNo: predictedRuleNo,
+            pos: 1,
+            origin: origin
+          });
+          //console.log('added', dump_dotted_rule(grammar, cur.completions[cur.completions.length - 1]));
+        }
+      });
+      for (var k = 0; k < table[origin].completions.length; k++) {
+        var candidate = table[origin].completions[k];
+        if (sym == grammar[candidate.ruleNo].symbols[candidate.pos]) {
+          //console.log('completing with', dump_dotted_rule(grammar, candidate));
+          cur.completions.push({
+            ruleNo: candidate.ruleNo,
+            pos: candidate.pos + 1,
+            origin: candidate.origin
+          });
         }
       }
     }
   }
 
   function symbolOf(token) {
-    return grammar.symbols.indexOf(toParse[i]);
+    return grammar.symbols.indexOf(token);
   }
 }
 
@@ -207,13 +223,13 @@ function bv_scan(vec, iter) {
 
 function dump_table(grammar, table) {
   return '  predict ' + JSON.stringify(bitmv.dumpv(table.predictions)) + "\n" + table.completions.map(function(e) {
-      return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e) + ' @ ' + e.origin;
+      return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e);
     }).join('\n');
 }
 
 function dump_dotted_rule(grammar, ent) {
   var rule = grammar[ent.ruleNo];
-  return '{' + rule.name + '→' + rule.symbols.slice(0, ent.pos).map(display).join(' ') + '•' + rule.symbols.slice(ent.pos).map(display).join(' ') + '}';
+  return '{' + rule.name + '→' + rule.symbols.slice(0, ent.pos).map(display).join(' ') + '•' + rule.symbols.slice(ent.pos).map(display).join(' ') + '} @ ' + ent.origin;
 
   function display(e) {
     return grammar.symbols[e];
