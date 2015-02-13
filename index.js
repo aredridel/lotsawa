@@ -160,14 +160,23 @@ function parse(grammar, toParse) {
 
     // Advance rules
     var prev = table[i - 1];
+    var cur = table[i];
 
     if (!prev) return;
     for (var j = 0; j < prev.completions.length; j++) {
       if (bv_bit_test(grammar.sympred[sym], grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos])) {
+        var candidate = prev.completions[j];
+        var found = false;
+        for (var l = 0; l < cur.completions.length; l++) {
+          var t = cur.completions[l];
+          if (t.ruleNo == candidate.ruleNo && t.pos == candidate.pos + 1 && t.origin == candidate.origin) {
+            found = true;
+          }
+        }
         table[i].completions.push({
-          ruleNo: prev.completions[j].ruleNo,
-          pos: prev.completions[j].pos + 1,
-          origin: prev.completions[j].origin,
+          ruleNo: candidate.ruleNo,
+          pos: candidate.pos + 1,
+          origin: candidate.origin,
           kind: 'A'
         });
       }
