@@ -128,7 +128,7 @@ function parse(grammar, toParse) {
     if (!prev) {
       //console.log('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
-      //console.log(bitmv.dumpv(predictions));
+    //console.log(bitmv.dumpv(predictions));
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
         var ruleNo = prev.completions[j].ruleNo;
@@ -193,7 +193,7 @@ function parse(grammar, toParse) {
       var sym = grammar[ruleNo].sym;
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
-      console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
+      // console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
       bv_scan(table[origin].predictions, function(predictedRuleNo) {
         //console.log('try', predictedRuleNo, grammar[predictedRuleNo]);
@@ -221,7 +221,7 @@ function parse(grammar, toParse) {
       for (var k = 0; k < table[origin].completions.length; k++) {
         var candidate = table[origin].completions[k];
         if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
-          console.log('completing with', dump_dotted_rule(grammar, candidate));
+          // console.log('completing with', dump_dotted_rule(grammar, candidate));
           var found = false;
           for (var l = 0; l < cur.completions.length; l++) {
             var t = cur.completions[l];
@@ -277,3 +277,4 @@ module.exports = {
   Terminal: Terminal,
   parse: parse
 };
+
