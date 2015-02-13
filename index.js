@@ -110,7 +110,7 @@ function parse(grammar, toParse) {
       completions: []
     };
 
-    scan(i); // Fixme. That there's no set-1 is breaking scanning.
+    scan(i);
 
     complete(i);
 
@@ -152,7 +152,8 @@ function parse(grammar, toParse) {
         table[i].completions.push({
           ruleNo: ruleNo,
           pos: 1,
-          origin: i - 1
+          origin: i,
+          kind: 'S'
         });
       }
     });
@@ -162,11 +163,12 @@ function parse(grammar, toParse) {
 
     if (!prev) return;
     for (var j = 0; j < prev.completions.length; j++) {
-      if (grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos] == sym) {
+      if (bv_bit_test(grammar.sympred[sym], grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos])) {
         table[i].completions.push({
           ruleNo: prev.completions[j].ruleNo,
           pos: prev.completions[j].pos + 1,
-          origin: prev.completions[j].origin
+          origin: prev.completions[j].origin,
+          kind: 'A'
         });
       }
     }
@@ -182,27 +184,50 @@ function parse(grammar, toParse) {
       var sym = grammar[ruleNo].sym;
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
-      //console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
+      console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
+
       bv_scan(table[origin].predictions, function(predictedRuleNo) {
         //console.log('try', predictedRuleNo, grammar[predictedRuleNo]);
         if (grammar[predictedRuleNo].symbols[0] == sym) {
-          cur.completions.push({
-            ruleNo: predictedRuleNo,
-            pos: 1,
-            origin: origin
-          });
+          var found = false;
+          for (var l = 0; l < cur.completions.length; l++) {
+            var t = cur.completions[l];
+            if (t.ruleNo == predictedRuleNo && t.pos == 1 && t.origin == origin) {
+              found = true;
+            }
+          }
+
+          if (!found) {
+            cur.completions.push({
+              ruleNo: predictedRuleNo,
+              pos: 1,
+              origin: origin,
+              kind: 'C'
+            });
+          }
           //console.log('added', dump_dotted_rule(grammar, cur.completions[cur.completions.length - 1]));
         }
       });
+
       for (var k = 0; k < table[origin].completions.length; k++) {
         var candidate = table[origin].completions[k];
-        if (sym == grammar[candidate.ruleNo].symbols[candidate.pos]) {
-          //console.log('completing with', dump_dotted_rule(grammar, candidate));
-          cur.completions.push({
-            ruleNo: candidate.ruleNo,
-            pos: candidate.pos + 1,
-            origin: candidate.origin
-          });
+        if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
+          console.log('completing with', dump_dotted_rule(grammar, candidate));
+          var found = false;
+          for (var l = 0; l < cur.completions.length; l++) {
+            var t = cur.completions[l];
+            if (t.ruleNo == candidate.ruleNo && t.pos == candidate.pos && t.origin == candidate.origin) {
+              found = true;
+            }
+          }
+          if (!found) {
+            cur.completions.push({
+              ruleNo: candidate.ruleNo,
+              pos: candidate.pos,
+              origin: candidate.origin,
+              kind: 'P'
+            });
+          }
         }
       }
     }
@@ -229,7 +254,7 @@ function dump_table(grammar, table) {
 
 function dump_dotted_rule(grammar, ent) {
   var rule = grammar[ent.ruleNo];
-  return '{' + rule.name + '→' + rule.symbols.slice(0, ent.pos).map(display).join(' ') + '•' + rule.symbols.slice(ent.pos).map(display).join(' ') + '} @ ' + ent.origin;
+  return ent.kind + ' {' + rule.name + '→' + rule.symbols.slice(0, ent.pos).map(display).join(' ') + '•' + rule.symbols.slice(ent.pos).map(display).join(' ') + '} @ ' + ent.origin;
 
   function display(e) {
     return grammar.symbols[e];
@@ -243,6 +268,3 @@ module.exports = {
   Terminal: Terminal,
   parse: parse
 };
-
-
-
