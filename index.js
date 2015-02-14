@@ -112,6 +112,8 @@ function parse(grammar, toParse) {
 
     scan(i);
 
+    advance(i);
+
     complete(i);
 
     console.log(dump_table(grammar, table[i]));
@@ -157,8 +159,12 @@ function parse(grammar, toParse) {
         });
       }
     });
+  }
 
-    // Advance rules
+  function advance(i) {
+    var sym = symbolOf(toParse[i]);
+    if (!~sym) return;
+
     var prev = table[i - 1];
     var cur = table[i];
 
@@ -166,14 +172,7 @@ function parse(grammar, toParse) {
     for (var j = 0; j < prev.completions.length; j++) {
       if (bv_bit_test(grammar.sympred[sym], grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos])) {
         var candidate = prev.completions[j];
-        var found = false;
-        for (var l = 0; l < cur.completions.length; l++) {
-          var t = cur.completions[l];
-          if (t.ruleNo == candidate.ruleNo && t.pos == candidate.pos + 1 && t.origin == candidate.origin) {
-            found = true;
-          }
-        }
-        table[i].completions.push({
+        add(cur.completions, {
           ruleNo: candidate.ruleNo,
           pos: candidate.pos + 1,
           origin: candidate.origin,
@@ -198,22 +197,12 @@ function parse(grammar, toParse) {
       bv_scan(table[origin].predictions, function(predictedRuleNo) {
         //console.log('try', predictedRuleNo, grammar[predictedRuleNo]);
         if (grammar[predictedRuleNo].symbols[0] == sym) {
-          var found = false;
-          for (var l = 0; l < cur.completions.length; l++) {
-            var t = cur.completions[l];
-            if (t.ruleNo == predictedRuleNo && t.pos == 1 && t.origin == origin) {
-              found = true;
-            }
-          }
-
-          if (!found) {
-            cur.completions.push({
-              ruleNo: predictedRuleNo,
-              pos: 1,
-              origin: origin,
-              kind: 'C'
-            });
-          }
+          add(cur.completions, {
+            ruleNo: predictedRuleNo,
+            pos: 1,
+            origin: origin,
+            kind: 'C'
+          });
           //console.log('added', dump_dotted_rule(grammar, cur.completions[cur.completions.length - 1]));
         }
       });
@@ -222,21 +211,12 @@ function parse(grammar, toParse) {
         var candidate = table[origin].completions[k];
         if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
           // console.log('completing with', dump_dotted_rule(grammar, candidate));
-          var found = false;
-          for (var l = 0; l < cur.completions.length; l++) {
-            var t = cur.completions[l];
-            if (t.ruleNo == candidate.ruleNo && t.pos == candidate.pos && t.origin == candidate.origin) {
-              found = true;
-            }
-          }
-          if (!found) {
-            cur.completions.push({
-              ruleNo: candidate.ruleNo,
-              pos: candidate.pos,
-              origin: candidate.origin,
-              kind: 'P'
-            });
-          }
+          add(cur.completions, {
+            ruleNo: candidate.ruleNo,
+            pos: candidate.pos,
+            origin: candidate.origin,
+            kind: 'P'
+          });
         }
       }
     }
@@ -245,6 +225,17 @@ function parse(grammar, toParse) {
   function symbolOf(token) {
     return grammar.symbols.indexOf(token);
   }
+}
+
+function add(table, rule) {
+  for (var l = 0; l < table.length; l++) {
+    var t = table[l];
+    if (t.ruleNo == rule.ruleNo && t.pos == rule.pos && t.origin == rule.origin) {
+      return;
+    }
+  }
+
+  table.push(rule);
 }
 
 function bv_scan(vec, iter) {
@@ -277,4 +268,3 @@ module.exports = {
   Terminal: Terminal,
   parse: parse
 };
-
