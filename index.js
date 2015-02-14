@@ -223,7 +223,6 @@ function parse(grammar, toParse) {
             origin: origin,
             kind: 'C'
           });
-          //console.log('added', dump_dotted_rule(grammar, cur.completions[cur.completions.length - 1]));
         }
       });
 
@@ -249,13 +248,15 @@ function parse(grammar, toParse) {
 
 function add(table, rule) {
   for (var l = 0; l < table.length; l++) {
-    var t = table[l];
-    if (t.ruleNo == rule.ruleNo && t.pos == rule.pos && t.origin == rule.origin) {
-      return;
-    }
+    if (ruleEqual(table[l], rule)) return;
   }
 
   table.push(rule);
+  //console.log('added', dump_dotted_rule(grammar, table[table.length - 1]));
+}
+
+function ruleEqual(a, b) {
+  return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
 }
 
 function bv_scan(vec, iter) {
