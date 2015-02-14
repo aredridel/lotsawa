@@ -273,9 +273,11 @@ function dump_table(grammar, table) {
     }).join('\n');
 }
 
+var chalk = require('chalk');
+
 function dump_dotted_rule(grammar, ent) {
   var rule = grammar[ent.ruleNo];
-  return ent.kind + ' {' + rule.name + '→' + rule.symbols.slice(0, ent.pos).map(display).join(' ') + '•' + rule.symbols.slice(ent.pos).map(display).join(' ') + '} @ ' + ent.origin;
+  return ent.kind + ' ' + chalk.grey('@') + ' ' + chalk.yellow(ent.origin) + chalk.white(' {') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.slice(0, ent.pos).map(display).join(' ')) + chalk.red('•') + chalk.cyan(rule.symbols.slice(ent.pos).map(display).join(' ')) + chalk.white('}');
 
   function display(e) {
     return grammar.symbols[e];
