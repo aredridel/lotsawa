@@ -120,6 +120,26 @@ function parse(grammar, toParse) {
 
   }
 
+  return success(table[table.length -1]);
+
+  function success(table) {
+      var matches = 0;
+    for (var i = 0; i < table.completions.length; i++) {
+        var dr = table.completions[i];
+        if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.length - 1].symbols.length) matches++;
+    }
+
+    if (matches === 0) {
+        console.log('parse failed');
+    } else if (matches == 1) {
+        console.log('parse succeeded');
+        return true;
+    } else {
+        console.log('parse was ambiguous');
+    }
+    return false;
+  }
+
   function justcompletions(e) {
     return e.completions;
   }
