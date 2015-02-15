@@ -153,12 +153,13 @@ function parse(grammar, toParse) {
     //console.log(bitmv.dumpv(predictions));
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
-        var ruleNo = prev.completions[j].ruleNo;
-        var pos = prev.completions[j].pos;
-        var sym = grammar[ruleNo].symbols[pos];
-        if (grammar[ruleNo].symbols.length > pos) {
-          //console.log('predicting', ruleNo, 'at pos', pos, grammar[ruleNo], sym);
-          bv_or_assign(predictions, grammar.predictions_for_symbols[grammar[ruleNo].symbols[pos - 1]]);
+        var drule = prev.completions[j];
+        var pos = drule.pos;
+        var rule = grammar[drule.ruleNo];
+        var sym = rule.symbols[pos];
+        if (rule.symbols.length > pos) {
+          //console.log('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
+          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos - 1]]);
         }
       }
     }
