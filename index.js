@@ -269,7 +269,7 @@ function bv_scan(vec, iter) {
 }
 
 function dump_table(grammar, table) {
-  return '  predict ' + JSON.stringify(bitmv.dumpv(table.predictions)) + "\n" + table.completions.map(function(e) {
+  return '  predict ' + JSON.stringify(bitmv.dumpvn(table.predictions)) + "\n" + table.completions.map(function(e) {
       return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e);
     }).join('\n');
 }
