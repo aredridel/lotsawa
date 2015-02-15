@@ -50,7 +50,6 @@ function Grammar(rules) {
 
     console.log('symbols');
     console.log(bitmv.dump(predictable));
-    console.log(rules.symbols);
 
     return predictable;
   }
@@ -75,7 +74,7 @@ function Grammar(rules) {
   rules.predictions_for_symbols = generatePredictionMatrix();
 
   console.log('predictions_for_symbols');
-  console.log(bitmv.dump(rules.predictions_for_symbols));
+  console.log(rules.predictions_for_symbols.map(bitmv.dumpv).map(function (e, i) { return e + ' ' + rules.symbols[i]; }).join('\n'));
 
   return rules;
 }
