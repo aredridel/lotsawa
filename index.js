@@ -8,6 +8,11 @@ var bv_bit_test = bitmv.bv_bit_test;
 function Grammar(rules) {
   rules.push(Rule('_start', [Ref('start')]));
 
+  console.log('rules');
+  rules.forEach(function(e, i) {
+    console.log(i + ' ' + dump_rule(e));
+  });
+
   rules.symbols = censusSymbols();
   rules.sympred = generateSymbolMatrix();
 
@@ -287,6 +292,14 @@ function dump_dotted_rule(grammar, ent) {
 
   function display(e) {
     return grammar.symbols[e];
+  }
+}
+
+function dump_rule(rule) {
+  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(display).join(' ')) + chalk.white('}');
+
+  function display(e) {
+    return e.name;
   }
 }
 
