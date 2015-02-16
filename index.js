@@ -167,7 +167,7 @@ function parse(grammar, toParse) {
         var sym = rule.symbols[pos];
         if (rule.symbols.length > pos) {
           //console.log('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
-          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos - 1]]);
+          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
         }
       }
     }
@@ -178,8 +178,9 @@ function parse(grammar, toParse) {
   function scan(i) {
     var sym = symbolOf(toParse[i]);
     if (!~sym) return;
+
     bv_scan(table[i].predictions, function(ruleNo) {
-      if (bv_bit_test(grammar.sympred[sym], grammar[ruleNo].symbols[0])) {
+      if (grammar[ruleNo].symbols[0] == sym) {
         table[i].completions.push({
           ruleNo: ruleNo,
           pos: 1,
@@ -201,7 +202,7 @@ function parse(grammar, toParse) {
     for (var j = 0; j < prev.completions.length; j++) {
       var drule = prev.completions[j];
       var rule = grammar[drule.ruleNo];
-      if (bv_bit_test(grammar.sympred[sym], rule.symbols[drule.pos])) {
+      if (rule.symbols[drule.pos] == sym) {
         var candidate = prev.completions[j];
         add(cur.completions, {
           ruleNo: candidate.ruleNo,
@@ -226,8 +227,8 @@ function parse(grammar, toParse) {
       // console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
       bv_scan(table[origin].predictions, function(predictedRuleNo) {
-        //console.log('try', predictedRuleNo, grammar[predictedRuleNo]);
-        if (grammar[predictedRuleNo].symbols[0] == sym) {
+        //console.log('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
+        if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
           add(cur.completions, {
             ruleNo: predictedRuleNo,
             pos: 1,
@@ -237,13 +238,14 @@ function parse(grammar, toParse) {
         }
       });
 
-      for (var k = 0; k < table[origin].completions.length; k++) {
-        var candidate = table[origin].completions[k];
+      if (!table[origin - 1]) return;
+      for (var k = 0; k < table[origin - 1].completions.length; k++) {
+        var candidate = table[origin - 1].completions[k];
         if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
           // console.log('completing with', dump_dotted_rule(grammar, candidate));
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
-            pos: candidate.pos,
+            pos: candidate.pos + 1,
             origin: candidate.origin,
             kind: 'P'
           });
