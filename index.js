@@ -74,7 +74,9 @@ function Grammar(rules) {
   rules.predictions_for_symbols = generatePredictionMatrix();
 
   console.log('predictions_for_symbols');
-  console.log(rules.predictions_for_symbols.map(bitmv.dumpv).map(function (e, i) { return e + ' ' + rules.symbols[i]; }).join('\n'));
+  console.log(rules.predictions_for_symbols.map(bitmv.dumpv).map(function(e, i) {
+    return e + ' ' + rules.symbols[i];
+  }).join('\n'));
 
   return rules;
 }
@@ -119,22 +121,24 @@ function parse(grammar, toParse) {
 
   }
 
-  return success(table[table.length -1]);
+  return success(table[table.length - 1]);
 
   function success(table) {
-      var matches = 0;
+    var matches = 0;
     for (var i = 0; i < table.completions.length; i++) {
-        var dr = table.completions[i];
-        if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.length - 1].symbols.length) matches++;
+      var dr = table.completions[i];
+      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.length - 1].symbols.length) {
+        matches++;
+      }
     }
 
     if (matches === 0) {
-        console.log('parse failed');
+      console.log('parse failed');
     } else if (matches == 1) {
-        console.log('parse succeeded');
-        return true;
+      console.log('parse succeeded');
+      return true;
     } else {
-        console.log('parse was ambiguous');
+      console.log('parse was ambiguous');
     }
     return false;
   }
@@ -190,7 +194,9 @@ function parse(grammar, toParse) {
 
     if (!prev) return;
     for (var j = 0; j < prev.completions.length; j++) {
-      if (bv_bit_test(grammar.sympred[sym], grammar[prev.completions[j].ruleNo].symbols[prev.completions[j].pos])) {
+      var drule = prev.completions[j];
+      var rule = grammar[drule.ruleNo];
+      if (bv_bit_test(grammar.sympred[sym], rule.symbols[drule.pos])) {
         var candidate = prev.completions[j];
         add(cur.completions, {
           ruleNo: candidate.ruleNo,
