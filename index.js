@@ -128,10 +128,13 @@ function parse(grammar, toParse) {
 
   return success(table[table.length - 1]);
 
-  function success(table) {
+  function success(tab) {
     var matches = 0;
-    for (var i = 0; i < table.completions.length; i++) {
-      var dr = table.completions[i];
+    if (toParse.length == 0 && !tab) {
+      return true;
+    }
+    for (var j = 0; j < tab.completions.length; j++) {
+      var dr = tab.completions[j];
       if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.length - 1].symbols.length) {
         matches++;
       }
