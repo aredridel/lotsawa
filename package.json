@@ -1,6 +1,6 @@
 {
   "name": "lotsawa",
-  "version": "1.0.0",
+  "version": "1.0.0-0",
   "description": "An implementation of the Marpa parsing algorithm",
   "main": "index.js",
   "author": "Aria Stewart <aredridel@dinhe.net>",
