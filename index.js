@@ -224,7 +224,7 @@ function parse(grammar, toParse) {
       if (pos < grammar[ruleNo].symbols.length) continue;
       // console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
-      bv_scan(table[origin].predictions, predictForRule);
+      bv_scan(table[origin].predictions, predictForRuleNo);
 
       if (!table[origin - 1]) return;
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
@@ -241,7 +241,7 @@ function parse(grammar, toParse) {
       }
     }
 
-    function predictForRule(predictedRuleNo) {
+    function predictForRuleNo(predictedRuleNo) {
       //console.log('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
       if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
         add(cur.completions, {
