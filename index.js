@@ -44,7 +44,7 @@ function Grammar(rules) {
     // Build a matrix of what symbols predict what other symbols, so we can just jump straight to the
     // answer rather than having to do these loops at each pass. Bitsets are fun.
     rules.symbols.forEach(function(name, sym) {
-      rules.forEach(function(r, j) {
+      rules.forEach(function(r) {
         if (r.symbols[0] != null && r.symbols[0] == sym) {
           bv_bit_set(predictable[sym], r.sym);
         }
@@ -151,13 +151,9 @@ function parse(grammar, toParse) {
     return false;
   }
 
-  function justcompletions(e) {
-    return e.completions;
-  }
-
-  function predict(i) {
+  function predict(which) {
     var predictions = bitmv.vector(grammar.length);
-    var prev = table[i - 1];
+    var prev = table[which - 1];
     if (!prev) {
       //console.log('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
@@ -167,7 +163,7 @@ function parse(grammar, toParse) {
         var drule = prev.completions[j];
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
-        var sym = rule.symbols[pos];
+        //var sym = rule.symbols[pos];
         if (rule.symbols.length > pos) {
           //console.log('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
           bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
@@ -178,28 +174,28 @@ function parse(grammar, toParse) {
     return predictions;
   }
 
-  function scan(i) {
-    var sym = symbolOf(toParse[i]);
+  function scan(which) {
+    var sym = symbolOf(toParse[which]);
     if (!~sym) return;
 
-    bv_scan(table[i].predictions, function(ruleNo) {
+    bv_scan(table[which].predictions, function(ruleNo) {
       if (grammar[ruleNo].symbols[0] == sym) {
-        table[i].completions.push({
+        table[which].completions.push({
           ruleNo: ruleNo,
           pos: 1,
-          origin: i,
+          origin: which,
           kind: 'S'
         });
       }
     });
   }
 
-  function advance(i) {
-    var sym = symbolOf(toParse[i]);
+  function advance(which) {
+    var sym = symbolOf(toParse[which]);
     if (!~sym) return;
 
-    var prev = table[i - 1];
-    var cur = table[i];
+    var prev = table[which - 1];
+    var cur = table[which];
 
     if (!prev) return;
     for (var j = 0; j < prev.completions.length; j++) {
@@ -217,10 +213,9 @@ function parse(grammar, toParse) {
     }
   }
 
-  function complete(i) {
-    var cur = table[i];
+  function complete(which) {
+    var cur = table[which];
     for (var j = 0; j < cur.completions.length; j++) {
-      /*jshint loopfunc:true*/
       var ruleNo = cur.completions[j].ruleNo;
       var pos = cur.completions[j].pos;
       var origin = cur.completions[j].origin;
@@ -229,17 +224,7 @@ function parse(grammar, toParse) {
       if (pos < grammar[ruleNo].symbols.length) continue;
       // console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
-      bv_scan(table[origin].predictions, function(predictedRuleNo) {
-        //console.log('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
-        if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
-          add(cur.completions, {
-            ruleNo: predictedRuleNo,
-            pos: 1,
-            origin: origin,
-            kind: 'C'
-          });
-        }
-      });
+      bv_scan(table[origin].predictions, predictForRule);
 
       if (!table[origin - 1]) return;
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
@@ -253,6 +238,18 @@ function parse(grammar, toParse) {
             kind: 'P'
           });
         }
+      }
+    }
+
+    function predictForRule(predictedRuleNo) {
+      //console.log('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
+      if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
+        add(cur.completions, {
+          ruleNo: predictedRuleNo,
+          pos: 1,
+          origin: origin,
+          kind: 'C'
+        });
       }
     }
   }
