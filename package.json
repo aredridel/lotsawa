@@ -10,6 +10,9 @@
     "chalk": "^0.5.1"
   },
   "scripts": {
-    "test": "node test.js"
+    "test": "tape test/*.js"
+  },
+  "devDependencies": {
+    "tape": "^3.5.0"
   }
 }

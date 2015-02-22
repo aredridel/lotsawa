@@ -1,8 +1,10 @@
-var Grammar = require('./').Grammar;
-var Rule = require('./').Rule;
-var Ref = require('./').Ref;
-var parse = require('./').parse;
-var Terminal = require('./').Terminal;
+var Grammar = require('../').Grammar;
+var Rule = require('../').Rule;
+var Ref = require('../').Ref;
+var parse = require('../').parse;
+var Terminal = require('../').Terminal;
+
+var test = require('tape');
 
 var grammar = Grammar([
     Rule('start', [ Ref('value') ]),
@@ -33,4 +35,7 @@ var grammar = Grammar([
     Rule('inside-string', [ Terminal('a') ]),
 ]);
 
-parse(grammar, '{"a":"aaaaaaaaa","a":0123}');
+test('parses', function(t) {
+    t.ok(parse(grammar, '{"a":"aaaaaaaaa","a":0123}'));
+    t.end();
+});
