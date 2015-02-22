@@ -8,11 +8,6 @@ var bv_bit_test = bitmv.bv_bit_test;
 function Grammar(rules) {
   rules.push(Rule('_start', [Ref('start')]));
 
-  console.log('rules');
-  rules.forEach(function(e, i) {
-    console.log(i + ' ' + dump_rule(e));
-  });
-
   rules.symbols = censusSymbols();
   rules.sympred = generateSymbolMatrix();
 
@@ -53,9 +48,6 @@ function Grammar(rules) {
     });
     bitmv.transitiveClosure(predictable);
 
-    console.log('symbols');
-    console.log(bitmv.dump(predictable));
-
     return predictable;
   }
 
@@ -77,11 +69,6 @@ function Grammar(rules) {
   }
 
   rules.predictions_for_symbols = generatePredictionMatrix();
-
-  console.log('predictions_for_symbols');
-  console.log(rules.predictions_for_symbols.map(bitmv.dumpv).map(function(e, i) {
-    return e + ' ' + rules.symbols[i];
-  }).join('\n'));
 
   return rules;
 }
@@ -106,11 +93,13 @@ function Terminal(symbol) {
   };
 }
 
-function parse(grammar, toParse) {
-  var table = new Array(toParse.length);
+function parse(grammar, toParse, debug) {
+  var table = [];
 
   for (var i = 0; i < toParse.length; i++) {
-    console.log('set', i, toParse[i], 'sym', symbolOf(toParse[i]));
+    if (debug) {
+      debug('set', i, toParse[i], 'sym', symbolOf(toParse[i]));
+    }
     table[i] = {
       predictions: predict(i),
       completions: []
@@ -122,8 +111,9 @@ function parse(grammar, toParse) {
 
     complete(i);
 
-    console.log(dump_table(grammar, table[i]));
-
+    if (debug) {
+      debug(table, i);
+    }
   }
 
   return success(table[table.length - 1]);
@@ -141,12 +131,18 @@ function parse(grammar, toParse) {
     }
 
     if (matches === 0) {
-      console.log('parse failed');
+      if (debug) {
+        debug('parse failed');
+      }
     } else if (matches == 1) {
-      console.log('parse succeeded');
+      if (debug) {
+        debug('parse succeeded');
+      }
       return true;
     } else {
-      console.log('parse was ambiguous');
+      if (debug) {
+        debug('parse was ambiguous');
+      }
     }
     return false;
   }
@@ -155,9 +151,9 @@ function parse(grammar, toParse) {
     var predictions = bitmv.vector(grammar.length);
     var prev = table[which - 1];
     if (!prev) {
-      //console.log('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
+      //if(debug)debug('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
-    //console.log(bitmv.dumpv(predictions));
+    //if(debug)debug(bitmv.dumpv(predictions));
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
         var drule = prev.completions[j];
@@ -165,7 +161,7 @@ function parse(grammar, toParse) {
         var rule = grammar[drule.ruleNo];
         //var sym = rule.symbols[pos];
         if (rule.symbols.length > pos) {
-          //console.log('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
+          //if(debug)debug('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
           bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
         }
       }
@@ -222,7 +218,7 @@ function parse(grammar, toParse) {
       var sym = grammar[ruleNo].sym;
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
-      // console.log('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
+      // if(debug)debug('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
       bv_scan(table[origin].predictions, predictForRuleNo);
 
@@ -230,7 +226,7 @@ function parse(grammar, toParse) {
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
         var candidate = table[origin - 1].completions[k];
         if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
-          // console.log('completing with', dump_dotted_rule(grammar, candidate));
+          // if(debug)debug('completing with', dump_dotted_rule(grammar, candidate));
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
@@ -242,7 +238,7 @@ function parse(grammar, toParse) {
     }
 
     function predictForRuleNo(predictedRuleNo) {
-      //console.log('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
+      //if(debug)debug('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
       if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
         add(cur.completions, {
           ruleNo: predictedRuleNo,
@@ -265,7 +261,7 @@ function add(table, rule) {
   }
 
   table.push(rule);
-  //console.log('added', dump_dotted_rule(grammar, table[table.length - 1]));
+  //if(debug)debug('added', dump_dotted_rule(grammar, table[table.length - 1]));
 }
 
 function ruleEqual(a, b) {
@@ -280,30 +276,6 @@ function bv_scan(vec, iter) {
   }
 }
 
-function dump_table(grammar, table) {
-  return '  predict ' + JSON.stringify(bitmv.dumpvn(table.predictions)) + "\n" + table.completions.map(function(e) {
-      return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e);
-    }).join('\n');
-}
-
-var chalk = require('chalk');
-
-function dump_dotted_rule(grammar, ent) {
-  var rule = grammar[ent.ruleNo];
-  return ent.kind + ' ' + chalk.grey('@') + ' ' + chalk.yellow(ent.origin) + chalk.white(' {') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.slice(0, ent.pos).map(display).join(' ')) + chalk.red('•') + chalk.cyan(rule.symbols.slice(ent.pos).map(display).join(' ')) + chalk.white('}');
-
-  function display(e) {
-    return grammar.symbols[e];
-  }
-}
-
-function dump_rule(rule) {
-  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(display).join(' ')) + chalk.white('}');
-
-  function display(e) {
-    return e.name;
-  }
-}
 
 module.exports = {
   Grammar: Grammar,
