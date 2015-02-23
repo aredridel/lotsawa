@@ -151,17 +151,13 @@ function parse(grammar, toParse, debug) {
     var predictions = bitmv.vector(grammar.length);
     var prev = table[which - 1];
     if (!prev) {
-      //if(debug)debug('predicting start rule', grammar.symbols.indexOf('_start'), bitmv.dumpv(grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]));
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
-    //if(debug)debug(bitmv.dumpv(predictions));
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
         var drule = prev.completions[j];
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
-        //var sym = rule.symbols[pos];
         if (rule.symbols.length > pos) {
-          //if(debug)debug('predicting', drule.ruleNo, 'at pos', pos, rule, sym);
           bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
         }
       }
@@ -218,7 +214,6 @@ function parse(grammar, toParse, debug) {
       var sym = grammar[ruleNo].sym;
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
-      // if(debug)debug('completing from', dump_dotted_rule(grammar, cur.completions[j]), 'from set', origin, 'with sym', sym);
 
       bv_scan(table[origin].predictions, predictForRuleNo);
 
@@ -226,7 +221,6 @@ function parse(grammar, toParse, debug) {
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
         var candidate = table[origin - 1].completions[k];
         if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
-          // if(debug)debug('completing with', dump_dotted_rule(grammar, candidate));
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
@@ -238,7 +232,6 @@ function parse(grammar, toParse, debug) {
     }
 
     function predictForRuleNo(predictedRuleNo) {
-      //if(debug)debug('try', predictedRuleNo, grammar[predictedRuleNo], grammar[predictedRuleNo].symbols[0] == sym);
       if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
         add(cur.completions, {
           ruleNo: predictedRuleNo,
@@ -261,7 +254,6 @@ function add(table, rule) {
   }
 
   table.push(rule);
-  //if(debug)debug('added', dump_dotted_rule(grammar, table[table.length - 1]));
 }
 
 function ruleEqual(a, b) {
