@@ -47,6 +47,8 @@ function dump_grammar(grammar) {
 }
 
 function debug_parse(grammar, input) {
+  console.log(dump_grammar(grammar));
+
   return parse(grammar, input, function(table, i) {
     if (typeof table == 'string') {
       console.log.apply(console, arguments);

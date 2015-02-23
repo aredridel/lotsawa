@@ -10,6 +10,4 @@ var grammar = Grammar([
   Rule('start', [ Terminal('a'), Ref('start') ])
 ]);
 
-console.log(debug.dump_grammar(grammar));
-
 debug.parse(grammar, 'aab');
