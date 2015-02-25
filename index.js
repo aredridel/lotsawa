@@ -10,6 +10,11 @@ function Grammar(rules) {
 
   rules.symbols = censusSymbols();
   rules.sympred = generateSymbolMatrix();
+  rules.predictions_for_symbols = generatePredictionMatrix();
+
+  identifyRightRecursion();
+
+  return rules;
 
   function censusSymbols() {
     var out = [];
@@ -68,9 +73,31 @@ function Grammar(rules) {
     return predictable;
   }
 
-  rules.predictions_for_symbols = generatePredictionMatrix();
+  function identifyRightRecursion() {
+    var predictable = bitmv.matrix(rules.length, rules.length);
 
-  return rules;
+    rules.forEach(function(r, j) {
+      rules.forEach(function(s, k) {
+        if (last(r.symbols) != null && last(r.symbols) == s.sym) {
+            bv_bit_set(predictable[j], k);
+        }
+      });
+
+    });
+
+    bitmv.transitiveClosure(predictable);
+
+    rules.forEach(function(r, j) {
+      if (bv_bit_test(predictable[j], j)) {
+        r.right_recursive = true;
+      }
+    });
+  }
+
+}
+
+function last(arr) {
+  return arr[arr.length - 1];
 }
 
 function Rule(name, syms) {
@@ -116,7 +143,7 @@ function parse(grammar, toParse, debug) {
     }
   }
 
-  return success(table[table.length - 1]);
+  return success(last(table));
 
   function success(tab) {
     var matches = 0;
@@ -125,7 +152,7 @@ function parse(grammar, toParse, debug) {
     }
     for (var j = 0; j < tab.completions.length; j++) {
       var dr = tab.completions[j];
-      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.length - 1].symbols.length) {
+      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == last(grammar).symbols.length) {
         matches++;
       }
     }

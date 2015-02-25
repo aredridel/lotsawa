@@ -3,7 +3,7 @@ var bitmv = require('bitmv');
 var parse = require('./').parse;
 
 function dump_rule(grammar, rule) {
-  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(display).join(' ')) + chalk.white('}');
+  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(display).join(' ')) + chalk.white('}') + (rule.right_recursive ? chalk.magenta(" recursive") : '');
 
   function display(e) {
     return grammar.symbols[e];
