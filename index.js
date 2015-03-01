@@ -4,30 +4,22 @@
 // ==============
 module.exports = {
 
-  // `Grammar` returns a processed, precomputed grammar given an array of rules.
-    // `(Rule[]) → Grammar`
+  // `Grammar` returns a processed, precomputed grammar given an array of
+  // rules. `(Rule[]) → Grammar`
   Grammar: Grammar,
 
-  // `Rule` defines a rule in the proper format
-  //
-  // `(name, Symbol[]) → Rule`
+  // `Rule` defines a rule in the proper format `(name, Symbol[]) → Rule`
   Rule: Rule,
 
-  // `Ref` represents a reference to a rule
-  //
-  // `(name) → Ref`
+  // `Ref` represents a reference to a rule `(name) → Ref`
   Ref: Ref,
 
-  // `Terminal` represents a terminal symbol
-  //
-  // `(name) → Terminal
+  // `Terminal` represents a terminal symbol `(name) → Terminal`
   Terminal: Terminal,
 
   // Both `Ref` and `Terminal` are `Symbol`s.
 
-  // `parse' accepts input and performs the parse.
-  //
-  // (Grammar, string) → Boolean
+  // `parse' accepts input and performs the parse. `(Grammar, string) → Boolean`
   parse: parse
 };
 
