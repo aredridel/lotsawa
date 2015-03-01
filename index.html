@@ -124,12 +124,11 @@ symbols, and symbolic references to rules</p>
               <p>The input grammar is amended with a final rule, the ‘accept’ rule,
 which if it spans the parse chart, means the entire grammar was
 accepted. This is needed in the case of a nulling start symbol.</p>
-<p>At the moment this is later referred to by its position in the rule
-list, and so must be the last in the list.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  rules.push(Rule(<span class="hljs-string">'_start'</span>, [Ref(<span class="hljs-string">'start'</span>)]));</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  rules.push(Rule(<span class="hljs-string">'_accept'</span>, [Ref(<span class="hljs-string">'start'</span>)]));
+  rules.acceptRule = rules.length - <span class="hljs-number">1</span>;</pre></div></div>
             
         </li>
         
@@ -650,7 +649,7 @@ an avenue for refinement.</p>
     }
     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; tab.completions.length; j++) {
       <span class="hljs-keyword">var</span> dr = tab.completions[j];
-      <span class="hljs-keyword">if</span> (dr.origin === <span class="hljs-number">0</span> &amp;&amp; dr.ruleNo == grammar.length - <span class="hljs-number">1</span> &amp;&amp; dr.pos == last(grammar).symbols.length) {
+      <span class="hljs-keyword">if</span> (dr.origin === <span class="hljs-number">0</span> &amp;&amp; dr.ruleNo == grammar.length - <span class="hljs-number">1</span> &amp;&amp; dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
       }
     }
@@ -703,7 +702,7 @@ just the expectation that we’ll parse this grammar.</p>
     <span class="hljs-keyword">var</span> predictions = bitmv.vector(grammar.length);
     <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
     <span class="hljs-keyword">if</span> (!prev) {
-      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf(<span class="hljs-string">'_start'</span>)]);
+      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf(<span class="hljs-string">'_accept'</span>)]);
     } <span class="hljs-keyword">else</span> {
       <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; prev.completions.length; j++) {
         <span class="hljs-keyword">var</span> drule = prev.completions[j];
