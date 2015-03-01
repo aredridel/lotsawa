@@ -2,7 +2,7 @@
 
 <html>
 <head>
-  <title>index.js</title>
+  <title>The Public API</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
   <link rel="stylesheet" media="all" href="docco.css" />
@@ -12,12 +12,6 @@
     <div id="background"></div>
     
     <ul class="sections">
-        
-          <li id="title">
-              <div class="annotation">
-                  <h1>index.js</h1>
-              </div>
-          </li>
         
         
         
@@ -30,9 +24,7 @@
               
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-pi">"use strict"</span>;
-
-<span class="hljs-keyword">var</span> bitmv = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bitmv'</span>);</pre></div></div>
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">"use strict"</span>;</pre></div></div>
             
         </li>
         
@@ -42,6 +34,139 @@
               
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h1 id="the-public-api">The Public API</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-built_in">module</span>.exports = {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>Grammar returns a processed, precomputed grammar given an array of rules.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  Grammar: Grammar,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>Returns a rule in the proper format</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  Rule: Rule,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Represents a reference to a rule</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  Ref: Ref,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Represents a terminal symbol</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  Terminal: Terminal,</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>Accepts input and performs the parse.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  parse: parse
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <h1 id="some-definitions">Some definitions</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>The whole library uses a lot of set operations, represented by vectors,
+and some precomputation of what items refer to other items, calculated
+via transitive closures over bit matrices.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> bitmv = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bitmv'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
               </div>
               <p>let <code>bv_or_assign</code> be the operation of replacing the first argument with
 the union of the sets</p>
@@ -53,11 +178,11 @@ the union of the sets</p>
         </li>
         
         
-        <li id="section-3">
+        <li id="section-12">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-3">&#182;</a>
+                <a class="pilcrow" href="#section-12">&#182;</a>
               </div>
               <p>let <code>bv_bit_set</code> be the operation of setting a particular bit in a set.</p>
 
@@ -68,11 +193,11 @@ the union of the sets</p>
         </li>
         
         
-        <li id="section-4">
+        <li id="section-13">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-4">&#182;</a>
+                <a class="pilcrow" href="#section-13">&#182;</a>
               </div>
               <p>let <code>bv_bit_test</code> be the operation of determining whether a particular bit
 is in the set.</p>
@@ -86,11 +211,11 @@ is in the set.</p>
         </li>
         
         
-        <li id="section-5">
+        <li id="section-14">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-5">&#182;</a>
+                <a class="pilcrow" href="#section-14">&#182;</a>
               </div>
               <h1 id="processing-the-grammar">Processing The Grammar</h1>
 
@@ -99,11 +224,11 @@ is in the set.</p>
         </li>
         
         
-        <li id="section-6">
+        <li id="section-15">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-6">&#182;</a>
+                <a class="pilcrow" href="#section-15">&#182;</a>
               </div>
               <p>Here we begin defining a grammar given the raw rules, terminal
 symbols, and symbolic references to rules</p>
@@ -115,11 +240,11 @@ symbols, and symbolic references to rules</p>
         </li>
         
         
-        <li id="section-7">
+        <li id="section-16">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-7">&#182;</a>
+                <a class="pilcrow" href="#section-16">&#182;</a>
               </div>
               <p>The input grammar is amended with a final rule, the ‘accept’ rule,
 which if it spans the parse chart, means the entire grammar was
@@ -133,11 +258,11 @@ accepted. This is needed in the case of a nulling start symbol.</p>
         </li>
         
         
-        <li id="section-8">
+        <li id="section-17">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-8">&#182;</a>
+                <a class="pilcrow" href="#section-17">&#182;</a>
               </div>
               <h2 id="build-a-list-of-all-the-symbols-used-in-the-grammar">Build a list of all the symbols used in the grammar</h2>
 
@@ -146,11 +271,11 @@ accepted. This is needed in the case of a nulling start symbol.</p>
         </li>
         
         
-        <li id="section-9">
+        <li id="section-18">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-9">&#182;</a>
+                <a class="pilcrow" href="#section-18">&#182;</a>
               </div>
               <p>so they can be numbered instead of referred to by name, and therefore
 their presence can be represented by a single bit in a set.</p>
@@ -184,11 +309,11 @@ their presence can be represented by a single bit in a set.</p>
         </li>
         
         
-        <li id="section-10">
+        <li id="section-19">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-10">&#182;</a>
+                <a class="pilcrow" href="#section-19">&#182;</a>
               </div>
               <h2 id="build-a-matrix-of-what-symbols-predict-what-other-symbols">Build a matrix of what symbols predict what other symbols</h2>
 
@@ -197,11 +322,11 @@ their presence can be represented by a single bit in a set.</p>
         </li>
         
         
-        <li id="section-11">
+        <li id="section-20">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-11">&#182;</a>
+                <a class="pilcrow" href="#section-20">&#182;</a>
               </div>
               <p>so we can know what completions we’re looking for given a symbol, and
 manipulate that with the and and or of bit sets.</p>
@@ -229,11 +354,11 @@ manipulate that with the and and or of bit sets.</p>
         </li>
         
         
-        <li id="section-12">
+        <li id="section-21">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-12">&#182;</a>
+                <a class="pilcrow" href="#section-21">&#182;</a>
               </div>
               <h2 id="build-a-matrix-of-what-symbols-predict-what-rules">Build a matrix of what symbols predict what rules</h2>
 
@@ -242,11 +367,11 @@ manipulate that with the and and or of bit sets.</p>
         </li>
         
         
-        <li id="section-13">
+        <li id="section-22">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-13">&#182;</a>
+                <a class="pilcrow" href="#section-22">&#182;</a>
               </div>
               <p>This is so the Earley prediction step is just a matter of building a set
 with a couple successive bitwise or operations.</p>
@@ -275,11 +400,11 @@ with a couple successive bitwise or operations.</p>
         </li>
         
         
-        <li id="section-14">
+        <li id="section-23">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-14">&#182;</a>
+                <a class="pilcrow" href="#section-23">&#182;</a>
               </div>
               <h2 id="identify-what-rules-are-right-recursive">Identify what rules are right-recursive</h2>
 
@@ -288,11 +413,11 @@ with a couple successive bitwise or operations.</p>
         </li>
         
         
-        <li id="section-15">
+        <li id="section-24">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-15">&#182;</a>
+                <a class="pilcrow" href="#section-24">&#182;</a>
               </div>
               <p>The identified rules can use Joop Leo’s logic to memoize that right
 recursion, so there is not O(n^2) entries (a linear summary of the
@@ -308,11 +433,11 @@ optimization is O(n^2))</p>
         </li>
         
         
-        <li id="section-16">
+        <li id="section-25">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-16">&#182;</a>
+                <a class="pilcrow" href="#section-25">&#182;</a>
               </div>
               <p>First we build a matrix of what rules directly refer to what other
 rules by their rightmost symbol</p>
@@ -331,11 +456,11 @@ rules by their rightmost symbol</p>
         </li>
         
         
-        <li id="section-17">
+        <li id="section-26">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-17">&#182;</a>
+                <a class="pilcrow" href="#section-26">&#182;</a>
               </div>
               <p>Then we compute the transitive closure of that matrix, essentially
 following each recursion fully and annotating it.</p>
@@ -347,11 +472,11 @@ following each recursion fully and annotating it.</p>
         </li>
         
         
-        <li id="section-18">
+        <li id="section-27">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-18">&#182;</a>
+                <a class="pilcrow" href="#section-27">&#182;</a>
               </div>
               <p>Then we check for which rules have their own bit set — the diagonal
 of the matrix. Mark any such rules found.</p>
@@ -373,11 +498,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-19">
+        <li id="section-28">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-19">&#182;</a>
+                <a class="pilcrow" href="#section-28">&#182;</a>
               </div>
               <h1 id="defining-a-grammar">Defining a grammar</h1>
 
@@ -386,11 +511,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-20">
+        <li id="section-29">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-20">&#182;</a>
+                <a class="pilcrow" href="#section-29">&#182;</a>
               </div>
               <h2 id="define-a-rule">Define a rule</h2>
 
@@ -399,11 +524,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-21">
+        <li id="section-30">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-21">&#182;</a>
+                <a class="pilcrow" href="#section-30">&#182;</a>
               </div>
               <p>Rules are in the form</p>
 <p><em>{ Name → symbol symbol symbol }</em></p>
@@ -420,11 +545,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-22">
+        <li id="section-31">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-22">&#182;</a>
+                <a class="pilcrow" href="#section-31">&#182;</a>
               </div>
               <h2 id="refer-to-another-rule-by-its-name">Refer to another rule by its name</h2>
 
@@ -433,11 +558,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-23">
+        <li id="section-32">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-23">&#182;</a>
+                <a class="pilcrow" href="#section-32">&#182;</a>
               </div>
               <p>This symbol in the rule is a reference to another rule</p>
 
@@ -452,11 +577,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-24">
+        <li id="section-33">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-24">&#182;</a>
+                <a class="pilcrow" href="#section-33">&#182;</a>
               </div>
               <h2 id="define-a-terminal-symbol">Define a terminal symbol</h2>
 
@@ -465,11 +590,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-25">
+        <li id="section-34">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-25">&#182;</a>
+                <a class="pilcrow" href="#section-34">&#182;</a>
               </div>
               <p>This symbol refers to nothing else and is used literally.</p>
 
@@ -485,11 +610,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-26">
+        <li id="section-35">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-26">&#182;</a>
+                <a class="pilcrow" href="#section-35">&#182;</a>
               </div>
               <h1 id="parsing">Parsing</h1>
 
@@ -498,11 +623,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-27">
+        <li id="section-36">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-27">&#182;</a>
+                <a class="pilcrow" href="#section-36">&#182;</a>
               </div>
               
             </div>
@@ -513,11 +638,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-28">
+        <li id="section-37">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-28">&#182;</a>
+                <a class="pilcrow" href="#section-37">&#182;</a>
               </div>
               <p>For each input symbol, generate an Earley set</p>
 
@@ -531,11 +656,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-29">
+        <li id="section-38">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-29">&#182;</a>
+                <a class="pilcrow" href="#section-38">&#182;</a>
               </div>
               <p>First predictions: what rules are possible at this point in the parse</p>
 
@@ -549,11 +674,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-30">
+        <li id="section-39">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-30">&#182;</a>
+                <a class="pilcrow" href="#section-39">&#182;</a>
               </div>
               <p>Then scan: what rules match at this point in the parse</p>
 
@@ -564,11 +689,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-31">
+        <li id="section-40">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-31">&#182;</a>
+                <a class="pilcrow" href="#section-40">&#182;</a>
               </div>
               <p>Then advance rules already started, seeking completion</p>
 
@@ -579,11 +704,11 @@ of the matrix. Mark any such rules found.</p>
         </li>
         
         
-        <li id="section-32">
+        <li id="section-41">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-32">&#182;</a>
+                <a class="pilcrow" href="#section-41">&#182;</a>
               </div>
               <p>Then find completed rules and carry their derivations forward,
 potentially advancing their causes.</p>
@@ -600,11 +725,11 @@ potentially advancing their causes.</p>
         </li>
         
         
-        <li id="section-33">
+        <li id="section-42">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-33">&#182;</a>
+                <a class="pilcrow" href="#section-42">&#182;</a>
               </div>
               <p>The parse succeeds if the accept rule is present in the final Earley set.</p>
 
@@ -615,11 +740,11 @@ potentially advancing their causes.</p>
         </li>
         
         
-        <li id="section-34">
+        <li id="section-43">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-34">&#182;</a>
+                <a class="pilcrow" href="#section-43">&#182;</a>
               </div>
               <h2 id="test-for-success">Test for success</h2>
 
@@ -628,11 +753,11 @@ potentially advancing their causes.</p>
         </li>
         
         
-        <li id="section-35">
+        <li id="section-44">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-35">&#182;</a>
+                <a class="pilcrow" href="#section-44">&#182;</a>
               </div>
               <p>Success is when the accept rule is present in the last Earley set and has
 origin 0. If there are multiple factorings of the output, there will be an
@@ -649,7 +774,9 @@ an avenue for refinement.</p>
     }
     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; tab.completions.length; j++) {
       <span class="hljs-keyword">var</span> dr = tab.completions[j];
-      <span class="hljs-keyword">if</span> (dr.origin === <span class="hljs-number">0</span> &amp;&amp; dr.ruleNo == grammar.length - <span class="hljs-number">1</span> &amp;&amp; dr.pos == grammar[grammar.acceptRule].symbols.length) {
+      <span class="hljs-keyword">if</span> (dr.origin === <span class="hljs-number">0</span> &amp;&amp;
+        dr.ruleNo == grammar.acceptRule &amp;&amp;
+        dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
       }
     }
@@ -674,11 +801,11 @@ an avenue for refinement.</p>
         </li>
         
         
-        <li id="section-36">
+        <li id="section-45">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-36">&#182;</a>
+                <a class="pilcrow" href="#section-45">&#182;</a>
               </div>
               <h2 id="predict-which-rules-are-applicable-given-current-input">Predict which rules are applicable given current input</h2>
 
@@ -687,11 +814,11 @@ an avenue for refinement.</p>
         </li>
         
         
-        <li id="section-37">
+        <li id="section-46">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-37">&#182;</a>
+                <a class="pilcrow" href="#section-46">&#182;</a>
               </div>
               <p>There is a special case for the first set, since there is no prior input,
 just the expectation that we’ll parse this grammar.</p>
@@ -720,11 +847,11 @@ just the expectation that we’ll parse this grammar.</p>
         </li>
         
         
-        <li id="section-38">
+        <li id="section-47">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-38">&#182;</a>
+                <a class="pilcrow" href="#section-47">&#182;</a>
               </div>
               <h2 id="scan-a-token">Scan a token</h2>
 
@@ -733,11 +860,11 @@ just the expectation that we’ll parse this grammar.</p>
         </li>
         
         
-        <li id="section-39">
+        <li id="section-48">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-39">&#182;</a>
+                <a class="pilcrow" href="#section-48">&#182;</a>
               </div>
               <p>Given the predictions, see which ones’ first symbols match input.</p>
 
@@ -762,11 +889,11 @@ just the expectation that we’ll parse this grammar.</p>
         </li>
         
         
-        <li id="section-40">
+        <li id="section-49">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-40">&#182;</a>
+                <a class="pilcrow" href="#section-49">&#182;</a>
               </div>
               <h2 id="advance-prior-rules-in-progress">Advance prior rules in progress</h2>
 
@@ -775,11 +902,11 @@ just the expectation that we’ll parse this grammar.</p>
         </li>
         
         
-        <li id="section-41">
+        <li id="section-50">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-41">&#182;</a>
+                <a class="pilcrow" href="#section-50">&#182;</a>
               </div>
               <p>Since there are uncompleted rules in progress during most steps, this will
 match those to input and step them along, recording the progress.</p>
@@ -812,11 +939,11 @@ match those to input and step them along, recording the progress.</p>
         </li>
         
         
-        <li id="section-42">
+        <li id="section-51">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-42">&#182;</a>
+                <a class="pilcrow" href="#section-51">&#182;</a>
               </div>
               <h2 id="complete-rules">Complete rules</h2>
 
@@ -825,11 +952,11 @@ match those to input and step them along, recording the progress.</p>
         </li>
         
         
-        <li id="section-43">
+        <li id="section-52">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-43">&#182;</a>
+                <a class="pilcrow" href="#section-52">&#182;</a>
               </div>
               <p>When a rule has been completed, its causing rules may also be advanced or
 completed. We process those here.</p>
@@ -877,23 +1004,16 @@ completed. We process those here.</p>
   <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">symbolOf</span><span class="hljs-params">(token)</span> </span>{
     <span class="hljs-keyword">return</span> grammar.symbols.indexOf(token);
   }
-}
-<span class="hljs-built_in">module</span>.exports = {
-  Grammar: Grammar,
-  Rule: Rule,
-  Ref: Ref,
-  Terminal: Terminal,
-  parse: parse
-};</pre></div></div>
+}</pre></div></div>
             
         </li>
         
         
-        <li id="section-44">
+        <li id="section-53">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-44">&#182;</a>
+                <a class="pilcrow" href="#section-53">&#182;</a>
               </div>
               <h1 id="unimportant-bits">Unimportant bits</h1>
 
@@ -902,11 +1022,11 @@ completed. We process those here.</p>
         </li>
         
         
-        <li id="section-45">
+        <li id="section-54">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-45">&#182;</a>
+                <a class="pilcrow" href="#section-54">&#182;</a>
               </div>
               
             </div>
@@ -914,11 +1034,11 @@ completed. We process those here.</p>
         </li>
         
         
-        <li id="section-46">
+        <li id="section-55">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-46">&#182;</a>
+                <a class="pilcrow" href="#section-55">&#182;</a>
               </div>
               <p>Get the last entry in an array</p>
 
@@ -931,11 +1051,11 @@ completed. We process those here.</p>
         </li>
         
         
-        <li id="section-47">
+        <li id="section-56">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-47">&#182;</a>
+                <a class="pilcrow" href="#section-56">&#182;</a>
               </div>
               <p>Scan a bit set and call the iterator function for each item in the set</p>
 
@@ -952,11 +1072,11 @@ completed. We process those here.</p>
         </li>
         
         
-        <li id="section-48">
+        <li id="section-57">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-48">&#182;</a>
+                <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
               <p>Add a rule to a table, detecting duplicates</p>
 
@@ -973,11 +1093,11 @@ completed. We process those here.</p>
         </li>
         
         
-        <li id="section-49">
+        <li id="section-58">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-49">&#182;</a>
+                <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
               <p>determine whether two rules are equal</p>
 
