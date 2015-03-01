@@ -1001,10 +1001,38 @@ requires realizing them as they are completed.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      bv_scan(table[origin].predictions, realizeCompletablePrediction);
+            <div class="content"><div class='highlight'><pre>      bv_scan(table[origin].predictions, realizeCompletablePrediction);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-55">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-55">&#182;</a>
+              </div>
+              <p>If this is the first Earley set being completed, then there are no
+prior rules already confirmed to advance.</p>
 
-      <span class="hljs-keyword">if</span> (!table[origin - <span class="hljs-number">1</span>]) <span class="hljs-keyword">return</span>;
-      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k = <span class="hljs-number">0</span>; k &lt; table[origin - <span class="hljs-number">1</span>].completions.length; k++) {
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> (!table[origin - <span class="hljs-number">1</span>]) <span class="hljs-keyword">return</span>;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-56">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-56">&#182;</a>
+              </div>
+              <p>Rules already confirmed and realized in prior Earley sets get advanced</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k = <span class="hljs-number">0</span>; k &lt; table[origin - <span class="hljs-number">1</span>].completions.length; k++) {
         <span class="hljs-keyword">var</span> candidate = table[origin - <span class="hljs-number">1</span>].completions[k];
         <span class="hljs-keyword">if</span> (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur.completions, {
@@ -1029,11 +1057,11 @@ requires realizing them as they are completed.</p>
     }
 
     <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">nextSymbol</span><span class="hljs-params">(prior)</span> </span>{
-        <span class="hljs-keyword">return</span> grammar[prior.ruleNo].symbols[prior.pos];
+      <span class="hljs-keyword">return</span> grammar[prior.ruleNo].symbols[prior.pos];
     }
 
     <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">prediction</span><span class="hljs-params">(s)</span> </span>{
-        <span class="hljs-keyword">return</span> grammar.sympred[s];
+      <span class="hljs-keyword">return</span> grammar.sympred[s];
     }
   }
 
@@ -1045,11 +1073,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-55">
+        <li id="section-57">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-55">&#182;</a>
+                <a class="pilcrow" href="#section-57">&#182;</a>
               </div>
               <h1 id="unimportant-bits">Unimportant bits</h1>
 
@@ -1058,11 +1086,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-56">
+        <li id="section-58">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-56">&#182;</a>
+                <a class="pilcrow" href="#section-58">&#182;</a>
               </div>
               
             </div>
@@ -1070,11 +1098,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-57">
+        <li id="section-59">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-57">&#182;</a>
+                <a class="pilcrow" href="#section-59">&#182;</a>
               </div>
               <p>Get the last entry in an array</p>
 
@@ -1087,11 +1115,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-58">
+        <li id="section-60">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-58">&#182;</a>
+                <a class="pilcrow" href="#section-60">&#182;</a>
               </div>
               <p>Scan a bit set and call the iterator function for each item in the set</p>
 
@@ -1108,11 +1136,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-59">
+        <li id="section-61">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-59">&#182;</a>
+                <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
               <p>Add a rule to a table, detecting duplicates</p>
 
@@ -1129,11 +1157,11 @@ requires realizing them as they are completed.</p>
         </li>
         
         
-        <li id="section-60">
+        <li id="section-62">
             <div class="annotation">
               
               <div class="pilwrap ">
-                <a class="pilcrow" href="#section-60">&#182;</a>
+                <a class="pilcrow" href="#section-62">&#182;</a>
               </div>
               <p>determine whether two rules are equal</p>
 
