@@ -383,7 +383,7 @@ function parse(grammar, toParse, debug) {
       if (!table[origin - 1]) return;
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
         var candidate = table[origin - 1].completions[k];
-        if (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
+        if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
@@ -395,7 +395,7 @@ function parse(grammar, toParse, debug) {
     }
 
     function realizeCompletablePrediction(predictedRuleNo) {
-      if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
+      if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
         add(cur.completions, {
           ruleNo: predictedRuleNo,
           pos: 1,
@@ -403,6 +403,14 @@ function parse(grammar, toParse, debug) {
           kind: 'C'
         });
       }
+    }
+
+    function nextSymbol(prior) {
+      return grammar[prior.ruleNo].symbols[prior.pos];
+    }
+
+    function prediction(s) {
+      return grammar.sympred[s];
     }
   }
 
