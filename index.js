@@ -216,7 +216,7 @@ function Terminal(symbol) {
 // Parsing
 // =======
 function parse(grammar, toParse, debug) {
-  var table = [];
+  var sets = [];
 
   // For each input symbol, generate an Earley set
   for (var i = 0; i < toParse.length; i++) {
@@ -225,7 +225,7 @@ function parse(grammar, toParse, debug) {
     }
 
     // First predictions: what rules are possible at this point in the parse
-    table[i] = {
+    sets[i] = {
       predictions: predict(i),
       completions: []
     };
@@ -241,12 +241,12 @@ function parse(grammar, toParse, debug) {
     complete(i);
 
     if (debug) {
-      debug(table, i);
+      debug(sets, i);
     }
   }
 
   // The parse succeeds if the accept rule is present in the final Earley set.
-  return success(last(table));
+  return success(last(sets));
 
   // Test for success
   // ----------------
@@ -295,7 +295,7 @@ function parse(grammar, toParse, debug) {
   // just the expectation that we'll parse this grammar.
   function predict(which) {
     var predictions = bitmv.vector(grammar.length);
-    var prev = table[which - 1];
+    var prev = sets[which - 1];
     if (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
@@ -321,9 +321,9 @@ function parse(grammar, toParse, debug) {
     var sym = symbolOf(toParse[which]);
     if (!~sym) return;
 
-    bv_scan(table[which].predictions, function(ruleNo) {
+    bv_scan(sets[which].predictions, function(ruleNo) {
       if (grammar[ruleNo].symbols[0] == sym) {
-        table[which].completions.push({
+        sets[which].completions.push({
           ruleNo: ruleNo,
           pos: 1,
           origin: which,
@@ -342,8 +342,8 @@ function parse(grammar, toParse, debug) {
     var sym = symbolOf(toParse[which]);
     if (!~sym) return;
 
-    var prev = table[which - 1];
-    var cur = table[which];
+    var prev = sets[which - 1];
+    var cur = sets[which];
 
     if (!prev) return;
     for (var j = 0; j < prev.completions.length; j++) {
@@ -367,7 +367,7 @@ function parse(grammar, toParse, debug) {
   // When a rule has been completed, its causing rules may also be advanced or
   // completed. We process those here.
   function complete(which) {
-    var cur = table[which];
+    var cur = sets[which];
     for (var j = 0; j < cur.completions.length; j++) {
       var ruleNo = cur.completions[j].ruleNo;
       var pos = cur.completions[j].pos;
@@ -378,15 +378,15 @@ function parse(grammar, toParse, debug) {
 
       // Since predictions are stored in compact form, completing them
       // requires realizing them as they are completed.
-      bv_scan(table[origin].predictions, realizeCompletablePrediction);
+      bv_scan(sets[origin].predictions, realizeCompletablePrediction);
 
       // If this is the first Earley set being completed, then there are no
       // prior rules already confirmed to advance.
-      if (!table[origin - 1]) return;
+      if (!sets[origin - 1]) return;
 
       // Rules already confirmed and realized in prior Earley sets get advanced
-      for (var k = 0; k < table[origin - 1].completions.length; k++) {
-        var candidate = table[origin - 1].completions[k];
+      for (var k = 0; k < sets[origin - 1].completions.length; k++) {
+        var candidate = sets[origin - 1].completions[k];
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
@@ -440,13 +440,13 @@ function bv_scan(vec, iter) {
   }
 }
 
-// Add a rule to a table, detecting duplicates
-function add(table, rule) {
-  for (var l = 0; l < table.length; l++) {
-    if (ruleEqual(table[l], rule)) return;
+// Add a rule to an Earley set, detecting duplicates
+function add(set, rule) {
+  for (var l = 0; l < set.length; l++) {
+    if (ruleEqual(set[l], rule)) return;
   }
 
-  table.push(rule);
+  set.push(rule);
 }
 
 // determine whether two rules are equal
