@@ -107,8 +107,7 @@ is in the set.</p>
               </div>
               <p>Here we begin defining a grammar given the raw rules, terminal
 symbols, and symbolic references to rules</p>
-<p>The input is a list of rules, in the form of</p>
-<p><em>{ Name → symbol symbol symbol }</em></p>
+<p>The input is a list of rules.</p>
 <h2 id="add-the-accept-rule">Add the accept rule</h2>
 
             </div>
@@ -298,8 +297,8 @@ with a couple successive bitwise or operations.</p>
               </div>
               <p>The identified rules can use Joop Leo’s logic to memoize that right
 recursion, so there is not O(n^2) entries (a linear summary of the
-factoring of the tree in each earley set in which it appears, so O(n) for
-each earley set, which is also O(n) and so right recursion without Leo
+factoring of the tree in each Earley set in which it appears, so O(n) for
+each Earley set, which is also O(n) and so right recursion without Leo
 optimization is O(n^2))</p>
 
             </div>
@@ -323,7 +322,7 @@ rules by their rightmost symbol</p>
             
             <div class="content"><div class='highlight'><pre>    rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r, j)</span> </span>{
       rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s, k)</span> </span>{
-        <span class="hljs-keyword">if</span> (last(r.symbols) != <span class="hljs-literal">null</span> &amp;&amp; last(r.symbols) == s.sym) {
+        <span class="hljs-keyword">if</span> (last(r.symbols) === s.sym) {
           bv_bit_set(predictable[j], k);
         }
       });
@@ -369,60 +368,282 @@ of the matrix. Mark any such rules found.</p>
 
   identifyRightRecursion();
 
-
   <span class="hljs-keyword">return</span> rules;
-}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <h1 id="defining-a-grammar">Defining a grammar</h1>
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">last</span><span class="hljs-params">(arr)</span> </span>{
-  <span class="hljs-keyword">return</span> arr[arr.length - <span class="hljs-number">1</span>];
-}
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <h2 id="define-a-rule">Define a rule</h2>
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Rule</span><span class="hljs-params">(name, syms)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Rules are in the form</p>
+<p><em>{ Name → symbol symbol symbol }</em></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Rule</span><span class="hljs-params">(name, syms)</span> </span>{
   <span class="hljs-keyword">return</span> {
     name: name,
     symbols: syms
   };
-}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <h2 id="refer-to-another-rule-by-its-name">Refer to another rule by its name</h2>
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Ref</span><span class="hljs-params">(name)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>This symbol in the rule is a reference to another rule</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Ref</span><span class="hljs-params">(name)</span> </span>{
   <span class="hljs-keyword">return</span> {
     name: name
   };
-}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <h2 id="define-a-terminal-symbol">Define a terminal symbol</h2>
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Terminal</span><span class="hljs-params">(symbol)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>This symbol refers to nothing else and is used literally.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Terminal</span><span class="hljs-params">(symbol)</span> </span>{
   <span class="hljs-keyword">return</span> {
     name: symbol,
     terminal: symbol
   };
-}
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <h1 id="parsing">Parsing</h1>
 
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parse</span><span class="hljs-params">(grammar, toParse, debug)</span> </span>{
-  <span class="hljs-keyword">var</span> table = [];
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parse</span><span class="hljs-params">(grammar, toParse, debug)</span> </span>{
+  <span class="hljs-keyword">var</span> table = [];</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>For each input symbol, generate an Earley set</p>
 
-  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; toParse.length; i++) {
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; toParse.length; i++) {
     <span class="hljs-keyword">if</span> (debug) {
       debug(<span class="hljs-string">'set'</span>, i, toParse[i], <span class="hljs-string">'sym'</span>, symbolOf(toParse[i]));
-    }
-    table[i] = {
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>First predictions: what rules are possible at this point in the parse</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    table[i] = {
       predictions: predict(i),
       completions: []
-    };
+    };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>Then scan: what rules match at this point in the parse</p>
 
-    scan(i);
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    scan(i);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>Then advance rules already started, seeking completion</p>
 
-    advance(i);
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    advance(i);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>Then find completed rules and carry their derivations forward,
+potentially advancing their causes.</p>
 
-    complete(i);
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    complete(i);
 
     <span class="hljs-keyword">if</span> (debug) {
       debug(table, i);
     }
-  }
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>The parse succeeds if the accept rule is present in the final Earley set.</p>
 
-  <span class="hljs-keyword">return</span> success(last(table));
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> success(last(table));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <h2 id="test-for-success">Test for success</h2>
 
-  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">success</span><span class="hljs-params">(tab)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>Success is when the accept rule is present in the last Earley set and has
+origin 0. If there are multiple factorings of the output, there will be an
+entry for each: the parse is ambiguous.</p>
+<p>At the moment, an ambiguous parse is considered unsuccessful, but this is
+an avenue for refinement.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">success</span><span class="hljs-params">(tab)</span> </span>{
     <span class="hljs-keyword">var</span> matches = <span class="hljs-number">0</span>;
     <span class="hljs-keyword">if</span> (toParse.length == <span class="hljs-number">0</span> &amp;&amp; !tab) {
       <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
@@ -449,9 +670,36 @@ of the matrix. Mark any such rules found.</p>
       }
     }
     <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
-  }
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <h2 id="predict-which-rules-are-applicable-given-current-input">Predict which rules are applicable given current input</h2>
 
-  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">predict</span><span class="hljs-params">(which)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>There is a special case for the first set, since there is no prior input,
+just the expectation that we’ll parse this grammar.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">predict</span><span class="hljs-params">(which)</span> </span>{
     <span class="hljs-keyword">var</span> predictions = bitmv.vector(grammar.length);
     <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
     <span class="hljs-keyword">if</span> (!prev) {
@@ -468,9 +716,35 @@ of the matrix. Mark any such rules found.</p>
     }
 
     <span class="hljs-keyword">return</span> predictions;
-  }
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <h2 id="scan-a-token">Scan a token</h2>
 
-  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">scan</span><span class="hljs-params">(which)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>Given the predictions, see which ones’ first symbols match input.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">scan</span><span class="hljs-params">(which)</span> </span>{
     <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
     <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
 
@@ -484,9 +758,36 @@ of the matrix. Mark any such rules found.</p>
         });
       }
     });
-  }
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <h2 id="advance-prior-rules-in-progress">Advance prior rules in progress</h2>
 
-  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">advance</span><span class="hljs-params">(which)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-41">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-41">&#182;</a>
+              </div>
+              <p>Since there are uncompleted rules in progress during most steps, this will
+match those to input and step them along, recording the progress.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">advance</span><span class="hljs-params">(which)</span> </span>{
     <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
     <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
 
@@ -507,9 +808,36 @@ of the matrix. Mark any such rules found.</p>
         });
       }
     }
-  }
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-42">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-42">&#182;</a>
+              </div>
+              <h2 id="complete-rules">Complete rules</h2>
 
-  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">complete</span><span class="hljs-params">(which)</span> </span>{
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-43">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-43">&#182;</a>
+              </div>
+              <p>When a rule has been completed, its causing rules may also be advanced or
+completed. We process those here.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">complete</span><span class="hljs-params">(which)</span> </span>{
     <span class="hljs-keyword">var</span> cur = table[which];
     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; cur.completions.length; j++) {
       <span class="hljs-keyword">var</span> ruleNo = cur.completions[j].ruleNo;
@@ -551,28 +879,6 @@ of the matrix. Mark any such rules found.</p>
     <span class="hljs-keyword">return</span> grammar.symbols.indexOf(token);
   }
 }
-
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">add</span><span class="hljs-params">(table, rule)</span> </span>{
-  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> l = <span class="hljs-number">0</span>; l &lt; table.length; l++) {
-    <span class="hljs-keyword">if</span> (ruleEqual(table[l], rule)) <span class="hljs-keyword">return</span>;
-  }
-
-  table.push(rule);
-}
-
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ruleEqual</span><span class="hljs-params">(a, b)</span> </span>{
-  <span class="hljs-keyword">return</span> a.ruleNo == b.ruleNo &amp;&amp; a.pos == b.pos &amp;&amp; a.origin == b.origin;
-}
-
-<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bv_scan</span><span class="hljs-params">(vec, iter)</span> </span>{
-  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; vec.bits; i++) {
-    <span class="hljs-keyword">if</span> (bitmv.bv_bit_test(vec, i)) {
-      iter(i);
-    }
-  }
-}
-
-
 <span class="hljs-built_in">module</span>.exports = {
   Grammar: Grammar,
   Rule: Rule,
@@ -580,6 +886,107 @@ of the matrix. Mark any such rules found.</p>
   Terminal: Terminal,
   parse: parse
 };</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-44">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-44">&#182;</a>
+              </div>
+              <h1 id="unimportant-bits">Unimportant bits</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-45">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-45">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-46">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-46">&#182;</a>
+              </div>
+              <p>Get the last entry in an array</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">last</span><span class="hljs-params">(arr)</span> </span>{
+  <span class="hljs-keyword">return</span> arr[arr.length - <span class="hljs-number">1</span>];
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-47">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-47">&#182;</a>
+              </div>
+              <p>Scan a bit set and call the iterator function for each item in the set</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bv_scan</span><span class="hljs-params">(vec, iter)</span> </span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; vec.bits; i++) {
+    <span class="hljs-keyword">if</span> (bitmv.bv_bit_test(vec, i)) {
+      iter(i);
+    }
+  }
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-48">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-48">&#182;</a>
+              </div>
+              <p>Add a rule to a table, detecting duplicates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">add</span><span class="hljs-params">(table, rule)</span> </span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> l = <span class="hljs-number">0</span>; l &lt; table.length; l++) {
+    <span class="hljs-keyword">if</span> (ruleEqual(table[l], rule)) <span class="hljs-keyword">return</span>;
+  }
+
+  table.push(rule);
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-49">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-49">&#182;</a>
+              </div>
+              <p>determine whether two rules are equal</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ruleEqual</span><span class="hljs-params">(a, b)</span> </span>{
+  <span class="hljs-keyword">return</span> a.ruleNo == b.ruleNo &amp;&amp; a.pos == b.pos &amp;&amp; a.origin == b.origin;
+}</pre></div></div>
             
         </li>
         
