@@ -1,5 +1,31 @@
 "use strict";
 
+// The Public API
+// ==============
+module.exports = {
+
+  // Grammar returns a processed, precomputed grammar given an array of rules.
+  Grammar: Grammar,
+
+  // Returns a rule in the proper format
+  Rule: Rule,
+
+  // Represents a reference to a rule
+  Ref: Ref,
+
+  // Represents a terminal symbol
+  Terminal: Terminal,
+
+  // Accepts input and performs the parse.
+  parse: parse
+};
+
+// Some definitions
+// ================
+//
+// The whole library uses a lot of set operations, represented by vectors,
+// and some precomputation of what items refer to other items, calculated
+// via transitive closures over bit matrices.
 var bitmv = require('bitmv');
 
 // let `bv_or_assign` be the operation of replacing the first argument with
@@ -235,7 +261,9 @@ function parse(grammar, toParse, debug) {
     }
     for (var j = 0; j < tab.completions.length; j++) {
       var dr = tab.completions[j];
-      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.acceptRule].symbols.length) {
+      if (dr.origin === 0 &&
+        dr.ruleNo == grammar.acceptRule &&
+        dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
       }
     }
@@ -377,13 +405,6 @@ function parse(grammar, toParse, debug) {
     return grammar.symbols.indexOf(token);
   }
 }
-module.exports = {
-  Grammar: Grammar,
-  Rule: Rule,
-  Ref: Ref,
-  Terminal: Terminal,
-  parse: parse
-};
 
 // Unimportant bits
 // ================
