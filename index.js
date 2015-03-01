@@ -380,7 +380,11 @@ function parse(grammar, toParse, debug) {
       // requires realizing them as they are completed.
       bv_scan(table[origin].predictions, realizeCompletablePrediction);
 
+      // If this is the first Earley set being completed, then there are no
+      // prior rules already confirmed to advance.
       if (!table[origin - 1]) return;
+
+      // Rules already confirmed and realized in prior Earley sets get advanced
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
         var candidate = table[origin - 1].completions[k];
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
