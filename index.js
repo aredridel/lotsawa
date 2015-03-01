@@ -20,9 +20,7 @@ function Grammar(rules) {
   // Here we begin defining a grammar given the raw rules, terminal
   // symbols, and symbolic references to rules
   //
-  // The input is a list of rules, in the form of
-  //
-  // _{ Name → symbol symbol symbol }_
+  // The input is a list of rules.
   //
   // Add the accept rule
   // -------------------
@@ -116,8 +114,8 @@ function Grammar(rules) {
   //
   // The identified rules can use Joop Leo's logic to memoize that right
   // recursion, so there is not O(n^2) entries (a linear summary of the
-  // factoring of the tree in each earley set in which it appears, so O(n) for
-  // each earley set, which is also O(n) and so right recursion without Leo
+  // factoring of the tree in each Earley set in which it appears, so O(n) for
+  // each Earley set, which is also O(n) and so right recursion without Leo
   // optimization is O(n^2))
   function identifyRightRecursion() {
     var predictable = bitmv.matrix(rules.length, rules.length);
@@ -126,7 +124,7 @@ function Grammar(rules) {
     // rules by their rightmost symbol
     rules.forEach(function(r, j) {
       rules.forEach(function(s, k) {
-        if (last(r.symbols) != null && last(r.symbols) == s.sym) {
+        if (last(r.symbols) === s.sym) {
           bv_bit_set(predictable[j], k);
         }
       });
@@ -148,14 +146,18 @@ function Grammar(rules) {
 
   identifyRightRecursion();
 
-
   return rules;
 }
 
-function last(arr) {
-  return arr[arr.length - 1];
-}
-
+// Defining a grammar
+// ==================
+//
+// Define a rule
+// -------------
+//
+// Rules are in the form
+//
+// _{ Name → symbol symbol symbol }_
 function Rule(name, syms) {
   return {
     name: name,
@@ -163,12 +165,20 @@ function Rule(name, syms) {
   };
 }
 
+// Refer to another rule by its name
+// ---------------------------------
+//
+// This symbol in the rule is a reference to another rule
 function Ref(name) {
   return {
     name: name
   };
 }
 
+// Define a terminal symbol
+// ------------------------
+//
+// This symbol refers to nothing else and is used literally.
 function Terminal(symbol) {
   return {
     name: symbol,
@@ -176,22 +186,31 @@ function Terminal(symbol) {
   };
 }
 
+// Parsing
+// =======
 function parse(grammar, toParse, debug) {
   var table = [];
 
+  // For each input symbol, generate an Earley set
   for (var i = 0; i < toParse.length; i++) {
     if (debug) {
       debug('set', i, toParse[i], 'sym', symbolOf(toParse[i]));
     }
+
+    // First predictions: what rules are possible at this point in the parse
     table[i] = {
       predictions: predict(i),
       completions: []
     };
 
+    // Then scan: what rules match at this point in the parse
     scan(i);
 
+    // Then advance rules already started, seeking completion
     advance(i);
 
+    // Then find completed rules and carry their derivations forward,
+    // potentially advancing their causes.
     complete(i);
 
     if (debug) {
@@ -199,8 +218,18 @@ function parse(grammar, toParse, debug) {
     }
   }
 
+  // The parse succeeds if the accept rule is present in the final Earley set.
   return success(last(table));
 
+  // Test for success
+  // ----------------
+  //
+  // Success is when the accept rule is present in the last Earley set and has
+  // origin 0. If there are multiple factorings of the output, there will be an
+  // entry for each: the parse is ambiguous.
+  //
+  // At the moment, an ambiguous parse is considered unsuccessful, but this is
+  // an avenue for refinement.
   function success(tab) {
     var matches = 0;
     if (toParse.length == 0 && !tab) {
@@ -230,6 +259,11 @@ function parse(grammar, toParse, debug) {
     return false;
   }
 
+  // Predict which rules are applicable given current input
+  // ------------------------------------------------------
+  //
+  // There is a special case for the first set, since there is no prior input,
+  // just the expectation that we'll parse this grammar.
   function predict(which) {
     var predictions = bitmv.vector(grammar.length);
     var prev = table[which - 1];
@@ -249,6 +283,11 @@ function parse(grammar, toParse, debug) {
     return predictions;
   }
 
+
+  // Scan a token
+  // ------------
+  //
+  // Given the predictions, see which ones' first symbols match input.
   function scan(which) {
     var sym = symbolOf(toParse[which]);
     if (!~sym) return;
@@ -265,6 +304,11 @@ function parse(grammar, toParse, debug) {
     });
   }
 
+  // Advance prior rules in progress
+  // -------------------------------
+  //
+  // Since there are uncompleted rules in progress during most steps, this will
+  // match those to input and step them along, recording the progress.
   function advance(which) {
     var sym = symbolOf(toParse[which]);
     if (!~sym) return;
@@ -288,6 +332,11 @@ function parse(grammar, toParse, debug) {
     }
   }
 
+  // Complete rules
+  // --------------
+  //
+  // When a rule has been completed, its causing rules may also be advanced or
+  // completed. We process those here.
   function complete(which) {
     var cur = table[which];
     for (var j = 0; j < cur.completions.length; j++) {
@@ -330,19 +379,23 @@ function parse(grammar, toParse, debug) {
     return grammar.symbols.indexOf(token);
   }
 }
+module.exports = {
+  Grammar: Grammar,
+  Rule: Rule,
+  Ref: Ref,
+  Terminal: Terminal,
+  parse: parse
+};
 
-function add(table, rule) {
-  for (var l = 0; l < table.length; l++) {
-    if (ruleEqual(table[l], rule)) return;
-  }
+// Unimportant bits
+// ================
 
-  table.push(rule);
+// Get the last entry in an array
+function last(arr) {
+  return arr[arr.length - 1];
 }
 
-function ruleEqual(a, b) {
-  return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
-}
-
+// Scan a bit set and call the iterator function for each item in the set
 function bv_scan(vec, iter) {
   for (var i = 0; i < vec.bits; i++) {
     if (bitmv.bv_bit_test(vec, i)) {
@@ -351,11 +404,16 @@ function bv_scan(vec, iter) {
   }
 }
 
+// Add a rule to a table, detecting duplicates
+function add(table, rule) {
+  for (var l = 0; l < table.length; l++) {
+    if (ruleEqual(table[l], rule)) return;
+  }
 
-module.exports = {
-  Grammar: Grammar,
-  Rule: Rule,
-  Ref: Ref,
-  Terminal: Terminal,
-  parse: parse
-};
+  table.push(rule);
+}
+
+// determine whether two rules are equal
+function ruleEqual(a, b) {
+  return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
+}
