@@ -376,7 +376,9 @@ function parse(grammar, toParse, debug) {
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
 
-      bv_scan(table[origin].predictions, predictForRuleNo);
+      // Since predictions are stored in compact form, completing them
+      // requires realizing them as they are completed.
+      bv_scan(table[origin].predictions, realizeCompletablePrediction);
 
       if (!table[origin - 1]) return;
       for (var k = 0; k < table[origin - 1].completions.length; k++) {
@@ -392,7 +394,7 @@ function parse(grammar, toParse, debug) {
       }
     }
 
-    function predictForRuleNo(predictedRuleNo) {
+    function realizeCompletablePrediction(predictedRuleNo) {
       if (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[0])) {
         add(cur.completions, {
           ruleNo: predictedRuleNo,
