@@ -647,7 +647,7 @@ of the matrix. Mark any such rules found.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parse</span><span class="hljs-params">(grammar, toParse, debug)</span> </span>{
-  <span class="hljs-keyword">var</span> table = [];</pre></div></div>
+  <span class="hljs-keyword">var</span> sets = [];</pre></div></div>
             
         </li>
         
@@ -680,7 +680,7 @@ of the matrix. Mark any such rules found.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>    table[i] = {
+            <div class="content"><div class='highlight'><pre>    sets[i] = {
       predictions: predict(i),
       completions: []
     };</pre></div></div>
@@ -732,7 +732,7 @@ potentially advancing their causes.</p>
             <div class="content"><div class='highlight'><pre>    complete(i);
 
     <span class="hljs-keyword">if</span> (debug) {
-      debug(table, i);
+      debug(sets, i);
     }
   }</pre></div></div>
             
@@ -749,7 +749,7 @@ potentially advancing their causes.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> success(last(table));</pre></div></div>
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">return</span> success(last(sets));</pre></div></div>
             
         </li>
         
@@ -841,7 +841,7 @@ just the expectation that we’ll parse this grammar.</p>
             
             <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">predict</span><span class="hljs-params">(which)</span> </span>{
     <span class="hljs-keyword">var</span> predictions = bitmv.vector(grammar.length);
-    <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
+    <span class="hljs-keyword">var</span> prev = sets[which - <span class="hljs-number">1</span>];
     <span class="hljs-keyword">if</span> (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf(<span class="hljs-string">'_accept'</span>)]);
     } <span class="hljs-keyword">else</span> {
@@ -888,9 +888,9 @@ just the expectation that we’ll parse this grammar.</p>
     <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
     <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
 
-    bv_scan(table[which].predictions, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ruleNo)</span> </span>{
+    bv_scan(sets[which].predictions, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ruleNo)</span> </span>{
       <span class="hljs-keyword">if</span> (grammar[ruleNo].symbols[<span class="hljs-number">0</span>] == sym) {
-        table[which].completions.push({
+        sets[which].completions.push({
           ruleNo: ruleNo,
           pos: <span class="hljs-number">1</span>,
           origin: which,
@@ -931,8 +931,8 @@ match those to input and step them along, recording the progress.</p>
     <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
     <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
 
-    <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
-    <span class="hljs-keyword">var</span> cur = table[which];
+    <span class="hljs-keyword">var</span> prev = sets[which - <span class="hljs-number">1</span>];
+    <span class="hljs-keyword">var</span> cur = sets[which];
 
     <span class="hljs-keyword">if</span> (!prev) <span class="hljs-keyword">return</span>;
     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; prev.completions.length; j++) {
@@ -978,7 +978,7 @@ completed. We process those here.</p>
             </div>
             
             <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">complete</span><span class="hljs-params">(which)</span> </span>{
-    <span class="hljs-keyword">var</span> cur = table[which];
+    <span class="hljs-keyword">var</span> cur = sets[which];
     <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; cur.completions.length; j++) {
       <span class="hljs-keyword">var</span> ruleNo = cur.completions[j].ruleNo;
       <span class="hljs-keyword">var</span> pos = cur.completions[j].pos;
@@ -1001,7 +1001,7 @@ requires realizing them as they are completed.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      bv_scan(table[origin].predictions, realizeCompletablePrediction);</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      bv_scan(sets[origin].predictions, realizeCompletablePrediction);</pre></div></div>
             
         </li>
         
@@ -1017,7 +1017,7 @@ prior rules already confirmed to advance.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> (!table[origin - <span class="hljs-number">1</span>]) <span class="hljs-keyword">return</span>;</pre></div></div>
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">if</span> (!sets[origin - <span class="hljs-number">1</span>]) <span class="hljs-keyword">return</span>;</pre></div></div>
             
         </li>
         
@@ -1032,8 +1032,8 @@ prior rules already confirmed to advance.</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k = <span class="hljs-number">0</span>; k &lt; table[origin - <span class="hljs-number">1</span>].completions.length; k++) {
-        <span class="hljs-keyword">var</span> candidate = table[origin - <span class="hljs-number">1</span>].completions[k];
+            <div class="content"><div class='highlight'><pre>      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k = <span class="hljs-number">0</span>; k &lt; sets[origin - <span class="hljs-number">1</span>].completions.length; k++) {
+        <span class="hljs-keyword">var</span> candidate = sets[origin - <span class="hljs-number">1</span>].completions[k];
         <span class="hljs-keyword">if</span> (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur.completions, {
             ruleNo: candidate.ruleNo,
@@ -1142,16 +1142,16 @@ prior rules already confirmed to advance.</p>
               <div class="pilwrap ">
                 <a class="pilcrow" href="#section-61">&#182;</a>
               </div>
-              <p>Add a rule to a table, detecting duplicates</p>
+              <p>Add a rule to an Earley set, detecting duplicates</p>
 
             </div>
             
-            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">add</span><span class="hljs-params">(table, rule)</span> </span>{
-  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> l = <span class="hljs-number">0</span>; l &lt; table.length; l++) {
-    <span class="hljs-keyword">if</span> (ruleEqual(table[l], rule)) <span class="hljs-keyword">return</span>;
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">add</span><span class="hljs-params">(set, rule)</span> </span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> l = <span class="hljs-number">0</span>; l &lt; set.length; l++) {
+    <span class="hljs-keyword">if</span> (ruleEqual(set[l], rule)) <span class="hljs-keyword">return</span>;
   }
 
-  table.push(rule);
+  set.push(rule);
 }</pre></div></div>
             
         </li>
