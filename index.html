@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>index.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>index.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-pi">"use strict"</span>;
+
+<span class="hljs-keyword">var</span> bitmv = <span class="hljs-built_in">require</span>(<span class="hljs-string">'bitmv'</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>let <code>bv_or_assign</code> be the operation of replacing the first argument with
+the union of the sets</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> bv_or_assign = bitmv.bv_or_assign;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>let <code>bv_bit_set</code> be the operation of setting a particular bit in a set.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> bv_bit_set = bitmv.bv_bit_set;</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>let <code>bv_bit_test</code> be the operation of determining whether a particular bit
+is in the set.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> bv_bit_test = bitmv.bv_bit_test;
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Grammar</span><span class="hljs-params">(rules)</span> </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <h1 id="processing-the-grammar">Processing The Grammar</h1>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>Here we begin defining a grammar given the raw rules, terminal
+symbols, and symbolic references to rules</p>
+<p>The input is a list of rules, in the form of</p>
+<p><em>{ Name → symbol symbol symbol }</em></p>
+<h2 id="add-the-accept-rule">Add the accept rule</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>The input grammar is amended with a final rule, the ‘accept’ rule,
+which if it spans the parse chart, means the entire grammar was
+accepted. This is needed in the case of a nulling start symbol.</p>
+<p>At the moment this is later referred to by its position in the rule
+list, and so must be the last in the list.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  rules.push(Rule(<span class="hljs-string">'_start'</span>, [Ref(<span class="hljs-string">'start'</span>)]));</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <h2 id="build-a-list-of-all-the-symbols-used-in-the-grammar">Build a list of all the symbols used in the grammar</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>so they can be numbered instead of referred to by name, and therefore
+their presence can be represented by a single bit in a set.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">censusSymbols</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> out = [];
+    rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r)</span> </span>{
+      <span class="hljs-keyword">if</span> (!~out.indexOf(r.name)) {
+        out.push(r.name);
+      }
+      r.symbols.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s, i)</span> </span>{
+        <span class="hljs-keyword">var</span> symNo = out.indexOf(s.name);
+        <span class="hljs-keyword">if</span> (!~out.indexOf(s.name)) {
+          symNo = out.length;
+          out.push(s.name);
+        }
+
+        r.symbols[i] = symNo;
+      });
+
+      r.sym = out.indexOf(r.name);
+    });
+
+    <span class="hljs-keyword">return</span> out;
+  }
+
+  rules.symbols = censusSymbols();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <h2 id="build-a-matrix-of-what-symbols-predict-what-other-symbols">Build a matrix of what symbols predict what other symbols</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>so we can know what completions we’re looking for given a symbol, and
+manipulate that with the and and or of bit sets.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">generateSymbolMatrix</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
+
+    rules.symbols.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(name, sym)</span> </span>{
+      rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r)</span> </span>{
+        <span class="hljs-keyword">if</span> (r.symbols[<span class="hljs-number">0</span>] != <span class="hljs-literal">null</span> &amp;&amp; r.symbols[<span class="hljs-number">0</span>] == sym) {
+          bv_bit_set(predictable[sym], r.sym);
+        }
+      });
+      bv_bit_set(predictable[sym], sym);
+    });
+    bitmv.transitiveClosure(predictable);
+
+    <span class="hljs-keyword">return</span> predictable;
+  }
+
+  rules.sympred = generateSymbolMatrix();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <h2 id="build-a-matrix-of-what-symbols-predict-what-rules">Build a matrix of what symbols predict what rules</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>This is so the Earley prediction step is just a matter of building a set
+with a couple successive bitwise or operations.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">generatePredictionMatrix</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> predictable = bitmv.matrix(rules.symbols.length, rules.length);
+    rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r, j)</span> </span>{
+      rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s, k)</span> </span>{
+        <span class="hljs-keyword">if</span> (r.symbols[<span class="hljs-number">0</span>] != <span class="hljs-literal">null</span> &amp;&amp; r.symbols[<span class="hljs-number">0</span>] == s.sym) {
+          bv_bit_set(predictable[r.sym], k);
+        }
+      });
+
+      bv_bit_set(predictable[r.sym], j);
+    });
+
+    bitmv.transitiveClosure(predictable);
+
+    <span class="hljs-keyword">return</span> predictable;
+  }
+
+  rules.predictions_for_symbols = generatePredictionMatrix();</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <h2 id="identify-what-rules-are-right-recursive">Identify what rules are right-recursive</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>The identified rules can use Joop Leo’s logic to memoize that right
+recursion, so there is not O(n^2) entries (a linear summary of the
+factoring of the tree in each earley set in which it appears, so O(n) for
+each earley set, which is also O(n) and so right recursion without Leo
+optimization is O(n^2))</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">identifyRightRecursion</span><span class="hljs-params">()</span> </span>{
+    <span class="hljs-keyword">var</span> predictable = bitmv.matrix(rules.length, rules.length);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>First we build a matrix of what rules directly refer to what other
+rules by their rightmost symbol</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r, j)</span> </span>{
+      rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(s, k)</span> </span>{
+        <span class="hljs-keyword">if</span> (last(r.symbols) != <span class="hljs-literal">null</span> &amp;&amp; last(r.symbols) == s.sym) {
+          bv_bit_set(predictable[j], k);
+        }
+      });
+
+    });</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>Then we compute the transitive closure of that matrix, essentially
+following each recursion fully and annotating it.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    bitmv.transitiveClosure(predictable);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Then we check for which rules have their own bit set — the diagonal
+of the matrix. Mark any such rules found.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    rules.forEach(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(r, j)</span> </span>{
+      <span class="hljs-keyword">if</span> (bv_bit_test(predictable[j], j)) {
+        r.right_recursive = <span class="hljs-literal">true</span>;
+      }
+    });
+  }
+
+  identifyRightRecursion();
+
+
+  <span class="hljs-keyword">return</span> rules;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">last</span><span class="hljs-params">(arr)</span> </span>{
+  <span class="hljs-keyword">return</span> arr[arr.length - <span class="hljs-number">1</span>];
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Rule</span><span class="hljs-params">(name, syms)</span> </span>{
+  <span class="hljs-keyword">return</span> {
+    name: name,
+    symbols: syms
+  };
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Ref</span><span class="hljs-params">(name)</span> </span>{
+  <span class="hljs-keyword">return</span> {
+    name: name
+  };
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">Terminal</span><span class="hljs-params">(symbol)</span> </span>{
+  <span class="hljs-keyword">return</span> {
+    name: symbol,
+    terminal: symbol
+  };
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">parse</span><span class="hljs-params">(grammar, toParse, debug)</span> </span>{
+  <span class="hljs-keyword">var</span> table = [];
+
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; toParse.length; i++) {
+    <span class="hljs-keyword">if</span> (debug) {
+      debug(<span class="hljs-string">'set'</span>, i, toParse[i], <span class="hljs-string">'sym'</span>, symbolOf(toParse[i]));
+    }
+    table[i] = {
+      predictions: predict(i),
+      completions: []
+    };
+
+    scan(i);
+
+    advance(i);
+
+    complete(i);
+
+    <span class="hljs-keyword">if</span> (debug) {
+      debug(table, i);
+    }
+  }
+
+  <span class="hljs-keyword">return</span> success(last(table));
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">success</span><span class="hljs-params">(tab)</span> </span>{
+    <span class="hljs-keyword">var</span> matches = <span class="hljs-number">0</span>;
+    <span class="hljs-keyword">if</span> (toParse.length == <span class="hljs-number">0</span> &amp;&amp; !tab) {
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    }
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; tab.completions.length; j++) {
+      <span class="hljs-keyword">var</span> dr = tab.completions[j];
+      <span class="hljs-keyword">if</span> (dr.origin === <span class="hljs-number">0</span> &amp;&amp; dr.ruleNo == grammar.length - <span class="hljs-number">1</span> &amp;&amp; dr.pos == last(grammar).symbols.length) {
+        matches++;
+      }
+    }
+
+    <span class="hljs-keyword">if</span> (matches === <span class="hljs-number">0</span>) {
+      <span class="hljs-keyword">if</span> (debug) {
+        debug(<span class="hljs-string">'parse failed'</span>);
+      }
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (matches == <span class="hljs-number">1</span>) {
+      <span class="hljs-keyword">if</span> (debug) {
+        debug(<span class="hljs-string">'parse succeeded'</span>);
+      }
+      <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>;
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">if</span> (debug) {
+        debug(<span class="hljs-string">'parse was ambiguous'</span>);
+      }
+    }
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">predict</span><span class="hljs-params">(which)</span> </span>{
+    <span class="hljs-keyword">var</span> predictions = bitmv.vector(grammar.length);
+    <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
+    <span class="hljs-keyword">if</span> (!prev) {
+      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf(<span class="hljs-string">'_start'</span>)]);
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; prev.completions.length; j++) {
+        <span class="hljs-keyword">var</span> drule = prev.completions[j];
+        <span class="hljs-keyword">var</span> pos = drule.pos;
+        <span class="hljs-keyword">var</span> rule = grammar[drule.ruleNo];
+        <span class="hljs-keyword">if</span> (rule.symbols.length &gt; pos) {
+          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
+        }
+      }
+    }
+
+    <span class="hljs-keyword">return</span> predictions;
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">scan</span><span class="hljs-params">(which)</span> </span>{
+    <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
+    <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
+
+    bv_scan(table[which].predictions, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(ruleNo)</span> </span>{
+      <span class="hljs-keyword">if</span> (grammar[ruleNo].symbols[<span class="hljs-number">0</span>] == sym) {
+        table[which].completions.push({
+          ruleNo: ruleNo,
+          pos: <span class="hljs-number">1</span>,
+          origin: which,
+          kind: <span class="hljs-string">'S'</span>
+        });
+      }
+    });
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">advance</span><span class="hljs-params">(which)</span> </span>{
+    <span class="hljs-keyword">var</span> sym = symbolOf(toParse[which]);
+    <span class="hljs-keyword">if</span> (!~sym) <span class="hljs-keyword">return</span>;
+
+    <span class="hljs-keyword">var</span> prev = table[which - <span class="hljs-number">1</span>];
+    <span class="hljs-keyword">var</span> cur = table[which];
+
+    <span class="hljs-keyword">if</span> (!prev) <span class="hljs-keyword">return</span>;
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; prev.completions.length; j++) {
+      <span class="hljs-keyword">var</span> drule = prev.completions[j];
+      <span class="hljs-keyword">var</span> rule = grammar[drule.ruleNo];
+      <span class="hljs-keyword">if</span> (rule.symbols[drule.pos] == sym) {
+        <span class="hljs-keyword">var</span> candidate = prev.completions[j];
+        add(cur.completions, {
+          ruleNo: candidate.ruleNo,
+          pos: candidate.pos + <span class="hljs-number">1</span>,
+          origin: candidate.origin,
+          kind: <span class="hljs-string">'A'</span>
+        });
+      }
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">complete</span><span class="hljs-params">(which)</span> </span>{
+    <span class="hljs-keyword">var</span> cur = table[which];
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> j = <span class="hljs-number">0</span>; j &lt; cur.completions.length; j++) {
+      <span class="hljs-keyword">var</span> ruleNo = cur.completions[j].ruleNo;
+      <span class="hljs-keyword">var</span> pos = cur.completions[j].pos;
+      <span class="hljs-keyword">var</span> origin = cur.completions[j].origin;
+      <span class="hljs-keyword">var</span> sym = grammar[ruleNo].sym;
+      <span class="hljs-keyword">if</span> (!~origin) <span class="hljs-keyword">continue</span>;
+      <span class="hljs-keyword">if</span> (pos &lt; grammar[ruleNo].symbols.length) <span class="hljs-keyword">continue</span>;
+
+      bv_scan(table[origin].predictions, predictForRuleNo);
+
+      <span class="hljs-keyword">if</span> (!table[origin - <span class="hljs-number">1</span>]) <span class="hljs-keyword">return</span>;
+      <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> k = <span class="hljs-number">0</span>; k &lt; table[origin - <span class="hljs-number">1</span>].completions.length; k++) {
+        <span class="hljs-keyword">var</span> candidate = table[origin - <span class="hljs-number">1</span>].completions[k];
+        <span class="hljs-keyword">if</span> (bv_bit_test(grammar.sympred[sym], grammar[candidate.ruleNo].symbols[candidate.pos])) {
+          add(cur.completions, {
+            ruleNo: candidate.ruleNo,
+            pos: candidate.pos + <span class="hljs-number">1</span>,
+            origin: candidate.origin,
+            kind: <span class="hljs-string">'P'</span>
+          });
+        }
+      }
+    }
+
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">predictForRuleNo</span><span class="hljs-params">(predictedRuleNo)</span> </span>{
+      <span class="hljs-keyword">if</span> (bv_bit_test(grammar.sympred[sym], grammar[predictedRuleNo].symbols[<span class="hljs-number">0</span>])) {
+        add(cur.completions, {
+          ruleNo: predictedRuleNo,
+          pos: <span class="hljs-number">1</span>,
+          origin: origin,
+          kind: <span class="hljs-string">'C'</span>
+        });
+      }
+    }
+  }
+
+  <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">symbolOf</span><span class="hljs-params">(token)</span> </span>{
+    <span class="hljs-keyword">return</span> grammar.symbols.indexOf(token);
+  }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">add</span><span class="hljs-params">(table, rule)</span> </span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> l = <span class="hljs-number">0</span>; l &lt; table.length; l++) {
+    <span class="hljs-keyword">if</span> (ruleEqual(table[l], rule)) <span class="hljs-keyword">return</span>;
+  }
+
+  table.push(rule);
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">ruleEqual</span><span class="hljs-params">(a, b)</span> </span>{
+  <span class="hljs-keyword">return</span> a.ruleNo == b.ruleNo &amp;&amp; a.pos == b.pos &amp;&amp; a.origin == b.origin;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">bv_scan</span><span class="hljs-params">(vec, iter)</span> </span>{
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; vec.bits; i++) {
+    <span class="hljs-keyword">if</span> (bitmv.bv_bit_test(vec, i)) {
+      iter(i);
+    }
+  }
+}
+
+
+<span class="hljs-built_in">module</span>.exports = {
+  Grammar: Grammar,
+  Rule: Rule,
+  Ref: Ref,
+  Terminal: Terminal,
+  parse: parse
+};</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>
