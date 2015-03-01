@@ -28,10 +28,8 @@ function Grammar(rules) {
   // The input grammar is amended with a final rule, the 'accept' rule,
   // which if it spans the parse chart, means the entire grammar was
   // accepted. This is needed in the case of a nulling start symbol.
-  //
-  // At the moment this is later referred to by its position in the rule
-  // list, and so must be the last in the list.
-  rules.push(Rule('_start', [Ref('start')]));
+  rules.push(Rule('_accept', [Ref('start')]));
+  rules.acceptRule = rules.length - 1;
 
   // Build a list of all the symbols used in the grammar
   // ---------------------------------------------------
@@ -237,7 +235,7 @@ function parse(grammar, toParse, debug) {
     }
     for (var j = 0; j < tab.completions.length; j++) {
       var dr = tab.completions[j];
-      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == last(grammar).symbols.length) {
+      if (dr.origin === 0 && dr.ruleNo == grammar.length - 1 && dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
       }
     }
@@ -268,7 +266,7 @@ function parse(grammar, toParse, debug) {
     var predictions = bitmv.vector(grammar.length);
     var prev = table[which - 1];
     if (!prev) {
-      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_start')]);
+      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
       for (var j = 0; j < prev.completions.length; j++) {
         var drule = prev.completions[j];
