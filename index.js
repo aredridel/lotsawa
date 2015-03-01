@@ -1,21 +1,45 @@
 "use strict";
 
 var bitmv = require('bitmv');
+
+// let `bv_or_assign` be the operation of replacing the first argument with
+// the union of the sets
 var bv_or_assign = bitmv.bv_or_assign;
+
+// let `bv_bit_set` be the operation of setting a particular bit in a set.
 var bv_bit_set = bitmv.bv_bit_set;
+
+// let `bv_bit_test` be the operation of determining whether a particular bit
+// is in the set.
 var bv_bit_test = bitmv.bv_bit_test;
 
 function Grammar(rules) {
+  // Processing The Grammar
+  // ======================
+  //
+  // Here we begin defining a grammar given the raw rules, terminal
+  // symbols, and symbolic references to rules
+  //
+  // The input is a list of rules, in the form of
+  //
+  // _{ Name → symbol symbol symbol }_
+  //
+  // Add the accept rule
+  // -------------------
+  //
+  // The input grammar is amended with a final rule, the 'accept' rule,
+  // which if it spans the parse chart, means the entire grammar was
+  // accepted. This is needed in the case of a nulling start symbol.
+  //
+  // At the moment this is later referred to by its position in the rule
+  // list, and so must be the last in the list.
   rules.push(Rule('_start', [Ref('start')]));
 
-  rules.symbols = censusSymbols();
-  rules.sympred = generateSymbolMatrix();
-  rules.predictions_for_symbols = generatePredictionMatrix();
-
-  identifyRightRecursion();
-
-  return rules;
-
+  // Build a list of all the symbols used in the grammar
+  // ---------------------------------------------------
+  //
+  // so they can be numbered instead of referred to by name, and therefore
+  // their presence can be represented by a single bit in a set.
   function censusSymbols() {
     var out = [];
     rules.forEach(function(r) {
@@ -38,11 +62,16 @@ function Grammar(rules) {
     return out;
   }
 
+  rules.symbols = censusSymbols();
+
+  // Build a matrix of what symbols predict what other symbols
+  // ---------------------------------------------------------
+  //
+  // so we can know what completions we're looking for given a symbol, and
+  // manipulate that with the and and or of bit sets.
   function generateSymbolMatrix() {
     var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
 
-    // Build a matrix of what symbols predict what other symbols, so we can just jump straight to the
-    // answer rather than having to do these loops at each pass. Bitsets are fun.
     rules.symbols.forEach(function(name, sym) {
       rules.forEach(function(r) {
         if (r.symbols[0] != null && r.symbols[0] == sym) {
@@ -56,6 +85,13 @@ function Grammar(rules) {
     return predictable;
   }
 
+  rules.sympred = generateSymbolMatrix();
+
+  // Build a matrix of what symbols predict what rules
+  // -------------------------------------------------
+  //
+  // This is so the Earley prediction step is just a matter of building a set
+  // with a couple successive bitwise or operations.
   function generatePredictionMatrix() {
     var predictable = bitmv.matrix(rules.symbols.length, rules.length);
     rules.forEach(function(r, j) {
@@ -73,20 +109,36 @@ function Grammar(rules) {
     return predictable;
   }
 
+  rules.predictions_for_symbols = generatePredictionMatrix();
+
+  // Identify what rules are right-recursive
+  // --------------------------------------
+  //
+  // The identified rules can use Joop Leo's logic to memoize that right
+  // recursion, so there is not O(n^2) entries (a linear summary of the
+  // factoring of the tree in each earley set in which it appears, so O(n) for
+  // each earley set, which is also O(n) and so right recursion without Leo
+  // optimization is O(n^2))
   function identifyRightRecursion() {
     var predictable = bitmv.matrix(rules.length, rules.length);
 
+    // First we build a matrix of what rules directly refer to what other
+    // rules by their rightmost symbol
     rules.forEach(function(r, j) {
       rules.forEach(function(s, k) {
         if (last(r.symbols) != null && last(r.symbols) == s.sym) {
-            bv_bit_set(predictable[j], k);
+          bv_bit_set(predictable[j], k);
         }
       });
 
     });
 
+    // Then we compute the transitive closure of that matrix, essentially
+    // following each recursion fully and annotating it.
     bitmv.transitiveClosure(predictable);
 
+    // Then we check for which rules have their own bit set -- the diagonal
+    // of the matrix. Mark any such rules found.
     rules.forEach(function(r, j) {
       if (bv_bit_test(predictable[j], j)) {
         r.right_recursive = true;
@@ -94,6 +146,10 @@ function Grammar(rules) {
     });
   }
 
+  identifyRightRecursion();
+
+
+  return rules;
 }
 
 function last(arr) {
