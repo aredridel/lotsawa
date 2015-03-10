@@ -392,7 +392,8 @@ function parse(grammar, toParse, debug) {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
             origin: candidate.origin,
-            kind: 'P'
+            kind: 'P',
+            leo: grammar[candidate.ruleNo].right_recursive
           });
         }
       }
