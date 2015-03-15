@@ -92,7 +92,7 @@ function Grammar(rules) {
   // Build a matrix of what symbols predict what other symbols
   // ---------------------------------------------------------
   //
-  // so we can know what completions we're looking for given a symbol, and
+  // so we can know what items we're looking for given a symbol, and
   // manipulate that with the and and or of bit sets.
   function generateSymbolMatrix() {
     var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
@@ -227,7 +227,7 @@ function parse(grammar, toParse, debug) {
     // First predictions: what rules are possible at this point in the parse
     sets[i] = {
       predictions: predict(i),
-      completions: []
+      items: []
     };
 
     // Then scan: what rules match at this point in the parse
@@ -262,8 +262,8 @@ function parse(grammar, toParse, debug) {
     if (toParse.length == 0 && !tab) {
       return true;
     }
-    for (var j = 0; j < tab.completions.length; j++) {
-      var dr = tab.completions[j];
+    for (var j = 0; j < tab.items.length; j++) {
+      var dr = tab.items[j];
       if (dr.origin === 0 &&
         dr.ruleNo == grammar.acceptRule &&
         dr.pos == grammar[grammar.acceptRule].symbols.length) {
@@ -299,8 +299,8 @@ function parse(grammar, toParse, debug) {
     if (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
-      for (var j = 0; j < prev.completions.length; j++) {
-        var drule = prev.completions[j];
+      for (var j = 0; j < prev.items.length; j++) {
+        var drule = prev.items[j];
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
         if (rule.symbols.length > pos) {
@@ -323,7 +323,7 @@ function parse(grammar, toParse, debug) {
 
     bv_scan(sets[which].predictions, function(ruleNo) {
       if (grammar[ruleNo].symbols[0] == sym) {
-        sets[which].completions.push({
+        sets[which].items.push({
           ruleNo: ruleNo,
           pos: 1,
           origin: which,
@@ -346,12 +346,12 @@ function parse(grammar, toParse, debug) {
     var cur = sets[which];
 
     if (!prev) return;
-    for (var j = 0; j < prev.completions.length; j++) {
-      var drule = prev.completions[j];
+    for (var j = 0; j < prev.items.length; j++) {
+      var drule = prev.items[j];
       var rule = grammar[drule.ruleNo];
       if (rule.symbols[drule.pos] == sym) {
-        var candidate = prev.completions[j];
-        add(cur.completions, {
+        var candidate = prev.items[j];
+        add(cur.items, {
           ruleNo: candidate.ruleNo,
           pos: candidate.pos + 1,
           origin: candidate.origin,
@@ -368,10 +368,10 @@ function parse(grammar, toParse, debug) {
   // completed. We process those here.
   function complete(which) {
     var cur = sets[which];
-    for (var j = 0; j < cur.completions.length; j++) {
-      var ruleNo = cur.completions[j].ruleNo;
-      var pos = cur.completions[j].pos;
-      var origin = cur.completions[j].origin;
+    for (var j = 0; j < cur.items.length; j++) {
+      var ruleNo = cur.items[j].ruleNo;
+      var pos = cur.items[j].pos;
+      var origin = cur.items[j].origin;
       var sym = grammar[ruleNo].sym;
       if (!~origin) continue;
       if (pos < grammar[ruleNo].symbols.length) continue;
@@ -385,10 +385,10 @@ function parse(grammar, toParse, debug) {
       if (!sets[origin - 1]) return;
 
       // Rules already confirmed and realized in prior Earley sets get advanced
-      for (var k = 0; k < sets[origin - 1].completions.length; k++) {
-        var candidate = sets[origin - 1].completions[k];
+      for (var k = 0; k < sets[origin - 1].items.length; k++) {
+        var candidate = sets[origin - 1].items[k];
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
-          add(cur.completions, {
+          add(cur.items, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
             origin: candidate.origin,
@@ -401,7 +401,7 @@ function parse(grammar, toParse, debug) {
 
     function realizeCompletablePrediction(predictedRuleNo) {
       if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
-        add(cur.completions, {
+        add(cur.items, {
           ruleNo: predictedRuleNo,
           pos: 1,
           origin: origin,
