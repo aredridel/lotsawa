@@ -20,7 +20,14 @@ module.exports = {
   // Both `Ref` and `Terminal` are `Symbol`s.
 
   // `parse' accepts input and performs the parse. `(Grammar, string) → Boolean`
-  parse: parse
+  parse: parse,
+
+  // `Parser` gives a parser that can be driven for arbitrary input.
+  //
+  // It has a `push` method that accepts a token of input, and a `success`
+  // method to see if the parse is successful given the current input.
+  Parser: Parser
+
 };
 
 // Some definitions
@@ -213,40 +220,61 @@ function Terminal(symbol) {
   };
 }
 
-// Parsing
-// =======
+// A convenience parse function
 function parse(grammar, toParse, debug) {
-  var sets = [];
-
+  var p = Parser(grammar, debug);
   // For each input symbol, generate an Earley set
   for (var i = 0; i < toParse.length; i++) {
+    p.push(toParse[i]);
+  }
+
+  return p.success();
+}
+
+// Parsing
+// =======
+function Parser(grammar, debug) {
+  var sets = [];
+
+  var currentSet = 0;
+
+  function handleToken(tok) {
+
     if (debug) {
-      debug('set', i, toParse[i], 'sym', symbolOf(toParse[i]));
+      debug('set', currentSet, tok, 'sym', symbolOf(tok));
     }
 
     // First predictions: what rules are possible at this point in the parse
-    sets[i] = {
-      predictions: predict(i),
+    sets[currentSet] = {
+      predictions: predict(currentSet),
       items: []
     };
 
     // Then scan: what rules match at this point in the parse
-    scan(i);
+    scan(currentSet, tok);
 
     // Then advance rules already started, seeking completion
-    advance(i);
+    advance(currentSet, tok);
 
     // Then find completed rules and carry their derivations forward,
     // potentially advancing their causes.
-    complete(i);
+    complete(currentSet);
 
     if (debug) {
-      debug(sets, i);
+      debug(sets, currentSet);
     }
+
+    currentSet += 1;
   }
 
-  // The parse succeeds if the accept rule is present in the final Earley set.
-  return success(last(sets));
+  return {
+    push: handleToken,
+    success: function() {
+      // The parse succeeds if the accept rule is present in the final Earley set.
+      return success(last(sets));
+    }
+  };
+
 
   // Test for success
   // ----------------
@@ -259,7 +287,7 @@ function parse(grammar, toParse, debug) {
   // an avenue for refinement.
   function success(tab) {
     var matches = 0;
-    if (toParse.length == 0 && !tab) {
+    if (currentSet == 0 && !tab) {
       return true;
     }
     for (var j = 0; j < tab.items.length; j++) {
@@ -317,8 +345,8 @@ function parse(grammar, toParse, debug) {
   // ------------
   //
   // Given the predictions, see which ones' first symbols match input.
-  function scan(which) {
-    var sym = symbolOf(toParse[which]);
+  function scan(which, tok) {
+    var sym = symbolOf(tok);
     if (!~sym) return;
 
     bv_scan(sets[which].predictions, function(ruleNo) {
@@ -338,8 +366,8 @@ function parse(grammar, toParse, debug) {
   //
   // Since there are uncompleted rules in progress during most steps, this will
   // match those to input and step them along, recording the progress.
-  function advance(which) {
-    var sym = symbolOf(toParse[which]);
+  function advance(which, tok) {
+    var sym = symbolOf(tok);
     if (!~sym) return;
 
     var prev = sets[which - 1];
