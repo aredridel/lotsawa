@@ -6,8 +6,8 @@ var Terminal = require('./').Terminal;
 var debug = require('./debug');
 
 var grammar = Grammar([
-  Rule('start', [ Terminal('b') ]),
+  Rule('start', [ Terminal('a') ]),
   Rule('start', [ Terminal('a'), Ref('start') ])
 ]);
 
-debug.parse(grammar, 'aab');
+debug.parse(grammar, 'aaa');
