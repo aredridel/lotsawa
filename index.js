@@ -350,11 +350,15 @@ function Parser(grammar, debug) {
     if (!~sym) return;
 
     bv_scan(sets[which].predictions, function(ruleNo) {
+      var rule = grammar[ruleNo];
+      var pos = 1;
+
       if (grammar[ruleNo].symbols[0] == sym) {
         sets[which].items.push({
           ruleNo: ruleNo,
-          pos: 1,
+          pos: pos,
           origin: which,
+          leo: leo(rule, pos),
           kind: 'S'
         });
       }
@@ -377,12 +381,16 @@ function Parser(grammar, debug) {
     for (var j = 0; j < prev.items.length; j++) {
       var drule = prev.items[j];
       var rule = grammar[drule.ruleNo];
+
       if (rule.symbols[drule.pos] == sym) {
         var candidate = prev.items[j];
+        var pos = candidate.pos + 1;
+
         add(cur, {
           ruleNo: candidate.ruleNo,
-          pos: candidate.pos + 1,
+          pos: pos,
           origin: candidate.origin,
+          leo: leo(rule, pos),
           kind: 'A'
         });
       }
@@ -412,16 +420,31 @@ function Parser(grammar, debug) {
       // prior rules already confirmed to advance.
       if (!sets[origin - 1]) return;
 
+      // Leo items from prior Earley sets get advanced
+      for (var l = 0; l < sets[origin - 1].items.length; l++) {
+        var item = sets[origin - 1].items[l];
+        if (!item.leo) continue;
+        // FIXME if leo item in previous set already exists for our symbol and origin, don't add one here.
+        if (bv_bit_test(prediction(sym), nextSymbol(item))) {
+          add(cur, {
+            ruleNo: item.ruleNo,
+            pos: item.pos + 1,
+            origin: item.origin,
+            kind: 'L'
+          });
+        }
+      }
+
       // Rules already confirmed and realized in prior Earley sets get advanced
       for (var k = 0; k < sets[origin - 1].items.length; k++) {
         var candidate = sets[origin - 1].items[k];
+        if (candidate.leo) continue;
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
             origin: candidate.origin,
-            kind: 'P',
-            leo: grammar[candidate.ruleNo].right_recursive
+            kind: 'C'
           });
         }
       }
@@ -433,7 +456,7 @@ function Parser(grammar, debug) {
           ruleNo: predictedRuleNo,
           pos: 1,
           origin: origin,
-          kind: 'C'
+          kind: 'P'
         });
       }
     }
@@ -450,6 +473,12 @@ function Parser(grammar, debug) {
   function symbolOf(token) {
     return grammar.symbols.indexOf(token);
   }
+
+  // Determine leo recursion eligibility for rule and position within it
+  function leo(rule, pos) {
+    return rule.right_recursive && rule.symbols.length == pos + 1 && rule.symbols[pos] == rule.sym;
+  }
+
 }
 
 // Unimportant bits
