@@ -379,7 +379,7 @@ function Parser(grammar, debug) {
       var rule = grammar[drule.ruleNo];
       if (rule.symbols[drule.pos] == sym) {
         var candidate = prev.items[j];
-        add(cur.items, {
+        add(cur, {
           ruleNo: candidate.ruleNo,
           pos: candidate.pos + 1,
           origin: candidate.origin,
@@ -416,7 +416,7 @@ function Parser(grammar, debug) {
       for (var k = 0; k < sets[origin - 1].items.length; k++) {
         var candidate = sets[origin - 1].items[k];
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
-          add(cur.items, {
+          add(cur, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
             origin: candidate.origin,
@@ -429,7 +429,7 @@ function Parser(grammar, debug) {
 
     function realizeCompletablePrediction(predictedRuleNo) {
       if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
-        add(cur.items, {
+        add(cur, {
           ruleNo: predictedRuleNo,
           pos: 1,
           origin: origin,
@@ -471,11 +471,11 @@ function bv_scan(vec, iter) {
 
 // Add a rule to an Earley set, detecting duplicates
 function add(set, rule) {
-  for (var l = 0; l < set.length; l++) {
-    if (ruleEqual(set[l], rule)) return;
+  for (var l = 0; l < set.items.length; l++) {
+    if (ruleEqual(set.items[l], rule)) return;
   }
 
-  set.push(rule);
+  set.items.push(rule);
 }
 
 // determine whether two rules are equal
