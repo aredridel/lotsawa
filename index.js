@@ -80,7 +80,7 @@ function Grammar(rules) {
       }
       r.symbols.forEach(function(s, i) {
         var symNo = out.indexOf(s.name);
-        if (!~out.indexOf(s.name)) {
+        if (!~symNo) {
           symNo = out.length;
           out.push(s.name);
         }
