@@ -404,6 +404,11 @@ function Parser(grammar, debug) {
   // completed. We process those here.
   function complete(which) {
     var cur = sets[which];
+
+    // I really dislike how I've done alreadyLeo -- not really connected enough
+    // to why what's going on is going on, but it's what I've got for now.
+    var alreadyLeo = false;
+
     for (var j = 0; j < cur.items.length; j++) {
       var ruleNo = cur.items[j].ruleNo;
       var pos = cur.items[j].pos;
@@ -421,23 +426,33 @@ function Parser(grammar, debug) {
       if (!sets[origin - 1]) return;
 
       // Leo items from prior Earley sets get advanced
-      for (var l = 0; l < sets[origin - 1].items.length; l++) {
+      if (!alreadyLeo) for (var l = 0; l < sets[origin - 1].items.length; l++) {
         var item = sets[origin - 1].items[l];
+
+        // Non-leo items will be handled below.
         if (!item.leo) continue;
-        // FIXME if leo item in previous set already exists for our symbol and origin, don't add one here.
         if (bv_bit_test(prediction(sym), nextSymbol(item))) {
           add(cur, {
             ruleNo: item.ruleNo,
             pos: item.pos + 1,
             origin: item.origin,
+            leo: true,
             kind: 'L'
           });
+
+          // We assume that the first Leo item we create is _the_ Leo item,
+          // which _should_ be true in most (all?) cases. This needs validation
+          // and refinement. A Leo item must be unique for a given origin set.
+          alreadyLeo = true;
+          break;
         }
       }
 
       // Rules already confirmed and realized in prior Earley sets get advanced
       for (var k = 0; k < sets[origin - 1].items.length; k++) {
         var candidate = sets[origin - 1].items[k];
+
+        // Leo items were handled above.
         if (candidate.leo) continue;
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur, {
