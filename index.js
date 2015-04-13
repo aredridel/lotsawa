@@ -466,6 +466,10 @@ function Parser(grammar, debug) {
     }
 
     function realizeCompletablePrediction(predictedRuleNo) {
+      // Because predicted items are virtual -- just an entry in a bit set --
+      // until realized, operations that scan the details will miss them. We
+      // do this now to save the cost of doing this for predictions that went
+      // nowhere.
       if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
         add(cur, {
           ruleNo: predictedRuleNo,
