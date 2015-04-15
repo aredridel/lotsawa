@@ -142,6 +142,13 @@ function Grammar(rules) {
   }
 
   rules.predictions_for_symbols = generatePredictionMatrix();
+  rules.predictions_expanded_for_symbols = rules.predictions_for_symbols.map(function(v) {
+    var out = [];
+    bv_scan(v, function(n) {
+      out.push(n);
+    });
+    return out;
+  });
 
   // Identify what rules are right-recursive
   // --------------------------------------
@@ -246,9 +253,11 @@ function Parser(grammar, debug) {
 
     // First predictions: what rules are possible at this point in the parse
     sets[currentSet] = {
-      predictions: predict(currentSet),
+      predictions: null,
       items: []
     };
+
+    sets[currentSet].predictions = predict(currentSet);
 
     // Then scan: what rules match at this point in the parse
     scan(currentSet, tok);
@@ -324,6 +333,7 @@ function Parser(grammar, debug) {
   function predict(which) {
     var predictions = bitmv.vector(grammar.length);
     var prev = sets[which - 1];
+    var cur = sets[which];
     if (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
@@ -332,8 +342,27 @@ function Parser(grammar, debug) {
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
         if (rule.symbols.length > pos) {
-          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
+          grammar.predictions_expanded_for_symbols[rule.symbols[pos]].forEach(expandRule);
         }
+      }
+    }
+
+    function expandRule(ruleNo) {
+      if ('leo' in drule) {
+        add(cur, {
+          ruleNo: ruleNo,
+          pos: 1,
+          leo: drule.leo,
+          origin: which,
+          kind: 'Q'
+        });
+      } else {
+        add(cur, {
+          ruleNo: ruleNo,
+          pos: 1,
+          origin: which,
+          kind: 'P'
+        });
       }
     }
 
@@ -358,7 +387,7 @@ function Parser(grammar, debug) {
           ruleNo: ruleNo,
           pos: pos,
           origin: which,
-          leo: leo(rule, pos),
+          leo: leo(rule, pos, which),
           kind: 'S'
         });
       }
@@ -386,11 +415,12 @@ function Parser(grammar, debug) {
         var candidate = prev.items[j];
         var pos = candidate.pos + 1;
 
+        console.log(candidate);
         add(cur, {
           ruleNo: candidate.ruleNo,
           pos: pos,
           origin: candidate.origin,
-          leo: leo(rule, pos),
+          leo: leo(rule, pos, candidate.leo != null ? candidate.leo : candidate.origin),
           kind: 'A'
         });
       }
@@ -426,26 +456,26 @@ function Parser(grammar, debug) {
       if (!sets[origin - 1]) return;
 
       // Leo items from prior Earley sets get advanced
-      if (!alreadyLeo) for (var l = 0; l < sets[origin - 1].items.length; l++) {
-        var item = sets[origin - 1].items[l];
+      if (!alreadyLeo)
+        for (var l = 0; l < sets[origin - 1].items.length; l++) {
+          var item = sets[origin - 1].items[l];
 
-        // Non-leo items will be handled below.
-        if (!item.leo) continue;
-        if (bv_bit_test(prediction(sym), nextSymbol(item))) {
-          add(cur, {
-            ruleNo: item.ruleNo,
-            pos: item.pos + 1,
-            origin: item.origin,
-            leo: true,
-            kind: 'L'
-          });
+          // Non-leo items will be handled below.
+          if (bv_bit_test(prediction(sym), nextSymbol(item))) {
+            add(cur, {
+              ruleNo: item.ruleNo,
+              pos: item.pos + 1,
+              origin: item.origin,
+              leo: item.leo || item.origin,
+              kind: 'L'
+            });
 
-          // We assume that the first Leo item we create is _the_ Leo item,
-          // which _should_ be true in most (all?) cases. This needs validation
-          // and refinement. A Leo item must be unique for a given origin set.
-          alreadyLeo = true;
-          break;
-        }
+            // We assume that the first Leo item we create is _the_ Leo item,
+            // which _should_ be true in most (all?) cases. This needs validation
+            // and refinement. A Leo item must be unique for a given origin set.
+            alreadyLeo = true;
+            break;
+          }
       }
 
       // Rules already confirmed and realized in prior Earley sets get advanced
@@ -480,13 +510,14 @@ function Parser(grammar, debug) {
       }
     }
 
-    function nextSymbol(prior) {
-      return grammar[prior.ruleNo].symbols[prior.pos];
-    }
+  }
 
-    function prediction(s) {
-      return grammar.sympred[s];
-    }
+  function nextSymbol(prior) {
+    return grammar[prior.ruleNo].symbols[prior.pos];
+  }
+
+  function prediction(s) {
+    return grammar.sympred[s];
   }
 
   function symbolOf(token) {
@@ -494,8 +525,8 @@ function Parser(grammar, debug) {
   }
 
   // Determine leo recursion eligibility for rule and position within it
-  function leo(rule, pos) {
-    return rule.right_recursive && rule.symbols.length == pos + 1 && rule.symbols[pos] == rule.sym;
+  function leo(rule, pos, which) {
+    return (rule.right_recursive && rule.symbols.length == pos + 1 && rule.symbols[pos] == rule.sym) ? which : null;
   }
 
 }
