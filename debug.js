@@ -12,7 +12,16 @@ function dump_rule(grammar, rule) {
 
 function dump_dotted_rule(grammar, ent) {
   var rule = grammar[ent.ruleNo];
-  return ent.kind + ' ' + chalk.grey('@') + ' ' + chalk.yellow(ent.origin) + chalk.white(' {') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.slice(0, ent.pos).map(display).join(' ')) + chalk.red('•') + chalk.cyan(rule.symbols.slice(ent.pos).map(display).join(' ')) + chalk.white('}') + (ent.leo ? ' leo' : '');
+  return ent.kind + ' ' + chalk.grey('@') + ' ' +
+    chalk.yellow(ent.origin) +
+    (ent.leo != null ? "/" + chalk.yellow(ent.leo) : '') +
+    chalk.white(' {') +
+    chalk.yellow(rule.name) +
+    chalk.white(' → ') +
+    chalk.cyan(rule.symbols.slice(0, ent.pos).map(display).join(' ')) +
+    chalk.red('•') +
+    chalk.cyan(rule.symbols.slice(ent.pos).map(display).join(' ')) +
+    chalk.white('}');
 
   function display(e) {
     return grammar.symbols[e];
