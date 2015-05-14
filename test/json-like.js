@@ -4,7 +4,7 @@ var Ref = require('../').Ref;
 var parse = require('../').parse;
 var Terminal = require('../').Terminal;
 
-var test = require('tape');
+var test = require('tap').test;
 
 var grammar = Grammar([
     Rule('start', [ Ref('value') ]),

@@ -10,11 +10,11 @@
     "chalk": "^0.5.1"
   },
   "scripts": {
-    "test": "tape test/*.js",
+    "test": "tap test/*.js",
     "docco": "docco index.js"
   },
   "devDependencies": {
     "docco": "^0.7.0",
-    "tape": "^3.5.0"
+    "tap": "^1.0.4"
   }
 }
