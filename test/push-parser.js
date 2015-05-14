@@ -3,7 +3,7 @@ var Rule = require('../').Rule;
 var Ref = require('../').Ref;
 var Parser = require('../').Parser;
 var Terminal = require('../').Terminal;
-var test = require('tape');
+var test = require('tap').test;
 
 var grammar = Grammar([
     Rule('start', [ Ref('A') ]),
