@@ -7,7 +7,7 @@ var debug = require('./debug');
 
 var grammar = Grammar([
   Rule('start', [ Terminal('a') ]),
-  Rule('start', [ Terminal('a'), Ref('start') ])
+  Rule('start', [ Terminal('a'), Terminal('a'), Ref('start') ])
 ]);
 
-debug.parse(grammar, 'aaa');
+debug.parse(grammar, 'aaaaaaaaa');
