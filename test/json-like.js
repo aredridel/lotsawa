@@ -1,7 +1,7 @@
 var Grammar = require('../').Grammar;
 var Rule = require('../').Rule;
 var Ref = require('../').Ref;
-var parse = require('../').parse;
+var parse = require('../debug').parse;
 var Terminal = require('../').Terminal;
 
 var test = require('tap').test;

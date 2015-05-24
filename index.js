@@ -147,6 +147,7 @@ function Grammar(rules) {
     bv_scan(v, function(n) {
       out.push(n);
     });
+    //console.warn(rules.symbols[i], ':', out.map(function (e) { return rules.symbols[e]; }).join(', '));
     return out;
   });
 
@@ -257,7 +258,7 @@ function Parser(grammar, debug) {
       items: []
     };
 
-    sets[currentSet].predictions = predict(currentSet);
+    sets[currentSet].predictions = predict(currentSet, tok);
 
     // Then scan: what rules match at this point in the parse
     scan(currentSet, tok);
@@ -297,6 +298,9 @@ function Parser(grammar, debug) {
   function success(tab) {
     var matches = 0;
     if (currentSet == 0 && !tab) {
+      if (debug) {
+        debug('null parse counts as success');
+      }
       return true;
     }
     for (var j = 0; j < tab.items.length; j++) {
@@ -330,7 +334,7 @@ function Parser(grammar, debug) {
   //
   // There is a special case for the first set, since there is no prior input,
   // just the expectation that we'll parse this grammar.
-  function predict(which) {
+  function predict(which, tok) {
     var predictions = bitmv.vector(grammar.length);
     var prev = sets[which - 1];
     var cur = sets[which];
@@ -342,12 +346,16 @@ function Parser(grammar, debug) {
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
         if (rule.symbols.length > pos) {
+          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
           grammar.predictions_expanded_for_symbols[rule.symbols[pos]].forEach(expandRule);
         }
       }
     }
 
     function expandRule(ruleNo) {
+      var sym = symbolOf(tok);
+      if (!~sym) return;
+      if (grammar[ruleNo].symbols[0] != sym) return;
       if ('leo' in drule) {
         add(cur, {
           ruleNo: ruleNo,
@@ -415,7 +423,6 @@ function Parser(grammar, debug) {
         var candidate = prev.items[j];
         var pos = candidate.pos + 1;
 
-        console.log(candidate);
         add(cur, {
           ruleNo: candidate.ruleNo,
           pos: pos,
@@ -460,8 +467,10 @@ function Parser(grammar, debug) {
         for (var l = 0; l < sets[origin - 1].items.length; l++) {
           var item = sets[origin - 1].items[l];
 
+          if (!item.leo) continue;
+
           // Non-leo items will be handled below.
-          if (bv_bit_test(prediction(sym), nextSymbol(item))) {
+          if (sym == nextSymbol(item)) {
             add(cur, {
               ruleNo: item.ruleNo,
               pos: item.pos + 1,
@@ -484,7 +493,8 @@ function Parser(grammar, debug) {
 
         // Leo items were handled above.
         if (candidate.leo) continue;
-        if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
+
+        if (sym == nextSymbol(candidate)) {
           add(cur, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
@@ -500,7 +510,7 @@ function Parser(grammar, debug) {
       // until realized, operations that scan the details will miss them. We
       // do this now to save the cost of doing this for predictions that went
       // nowhere.
-      if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
+      if (sym == grammar[predictedRuleNo].symbols[0]) {
         add(cur, {
           ruleNo: predictedRuleNo,
           pos: 1,
@@ -514,10 +524,6 @@ function Parser(grammar, debug) {
 
   function nextSymbol(prior) {
     return grammar[prior.ruleNo].symbols[prior.pos];
-  }
-
-  function prediction(s) {
-    return grammar.sympred[s];
   }
 
   function symbolOf(token) {
