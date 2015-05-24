@@ -341,7 +341,7 @@ function Parser(grammar, debug) {
     if (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
-      for (var j = 0; j < prev.items.length; j++) {
+      prev.items.forEach(function(item, j) {
         var drule = prev.items[j];
         var pos = drule.pos;
         var rule = grammar[drule.ruleNo];
@@ -349,30 +349,30 @@ function Parser(grammar, debug) {
           bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
           grammar.predictions_expanded_for_symbols[rule.symbols[pos]].forEach(expandRule);
         }
-      }
+        function expandRule(ruleNo) {
+          var sym = symbolOf(tok);
+          if (!~sym) return;
+          if (grammar[ruleNo].symbols[0] != sym) return;
+          if ('leo' in drule) {
+            add(cur, {
+              ruleNo: ruleNo,
+              pos: 1,
+              leo: drule.leo,
+              origin: which,
+              kind: 'Q'
+            });
+          } else {
+            add(cur, {
+              ruleNo: ruleNo,
+              pos: 1,
+              origin: which,
+              kind: 'P'
+            });
+          }
+        }
+      });
     }
 
-    function expandRule(ruleNo) {
-      var sym = symbolOf(tok);
-      if (!~sym) return;
-      if (grammar[ruleNo].symbols[0] != sym) return;
-      if ('leo' in drule) {
-        add(cur, {
-          ruleNo: ruleNo,
-          pos: 1,
-          leo: drule.leo,
-          origin: which,
-          kind: 'Q'
-        });
-      } else {
-        add(cur, {
-          ruleNo: ruleNo,
-          pos: 1,
-          origin: which,
-          kind: 'P'
-        });
-      }
-    }
 
     return predictions;
   }
@@ -415,8 +415,7 @@ function Parser(grammar, debug) {
     var cur = sets[which];
 
     if (!prev) return;
-    for (var j = 0; j < prev.items.length; j++) {
-      var drule = prev.items[j];
+    prev.items.forEach(function(drule, j) {
       var rule = grammar[drule.ruleNo];
 
       if (rule.symbols[drule.pos] == sym) {
@@ -431,7 +430,7 @@ function Parser(grammar, debug) {
           kind: 'A'
         });
       }
-    }
+    });
   }
 
   // Complete rules
@@ -464,10 +463,10 @@ function Parser(grammar, debug) {
 
       // Leo items from prior Earley sets get advanced
       if (!alreadyLeo)
-        for (var l = 0; l < sets[origin - 1].items.length; l++) {
-          var item = sets[origin - 1].items[l];
+        sets[origin - 1].items.forEach(function (item) {
+          if (alreadyLeo) return;
 
-          if (!item.leo) continue;
+          if (!item.leo) return;
 
           // Non-leo items will be handled below.
           if (sym == nextSymbol(item)) {
@@ -483,16 +482,13 @@ function Parser(grammar, debug) {
             // which _should_ be true in most (all?) cases. This needs validation
             // and refinement. A Leo item must be unique for a given origin set.
             alreadyLeo = true;
-            break;
           }
-      }
+      });
 
       // Rules already confirmed and realized in prior Earley sets get advanced
-      for (var k = 0; k < sets[origin - 1].items.length; k++) {
-        var candidate = sets[origin - 1].items[k];
-
+      sets[origin - 1].items.forEach(function (candidate) {
         // Leo items were handled above.
-        if (candidate.leo) continue;
+        if (candidate.leo) return;
 
         if (sym == nextSymbol(candidate)) {
           add(cur, {
@@ -502,7 +498,7 @@ function Parser(grammar, debug) {
             kind: 'C'
           });
         }
-      }
+      });
     }
 
     function realizeCompletablePrediction(predictedRuleNo) {
