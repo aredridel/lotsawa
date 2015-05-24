@@ -290,14 +290,13 @@ function Parser(grammar, debug) {
     if (currentSet == 0 && !tab) {
       return true;
     }
-    for (var j = 0; j < tab.items.length; j++) {
-      var dr = tab.items[j];
+    tab.items.forEach(function(dr) {
       if (dr.origin === 0 &&
         dr.ruleNo == grammar.acceptRule &&
         dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
       }
-    }
+    });
 
     if (matches === 0) {
       if (debug) {
@@ -327,14 +326,13 @@ function Parser(grammar, debug) {
     if (!prev) {
       bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
     } else {
-      for (var j = 0; j < prev.items.length; j++) {
-        var drule = prev.items[j];
-        var pos = drule.pos;
-        var rule = grammar[drule.ruleNo];
+      prev.items.forEach(function(candidate) {
+        var pos = candidate.pos;
+        var rule = grammar[candidate.ruleNo];
         if (rule.symbols.length > pos) {
           bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
         }
-      }
+      });
     }
 
     return predictions;
@@ -350,7 +348,6 @@ function Parser(grammar, debug) {
     if (!~sym) return;
 
     bv_scan(sets[which].predictions, function(ruleNo) {
-      var rule = grammar[ruleNo];
       var pos = 1;
 
       if (grammar[ruleNo].symbols[0] == sym) {
@@ -358,7 +355,6 @@ function Parser(grammar, debug) {
           ruleNo: ruleNo,
           pos: pos,
           origin: which,
-          leo: leo(rule, pos),
           kind: 'S'
         });
       }
@@ -378,12 +374,10 @@ function Parser(grammar, debug) {
     var cur = sets[which];
 
     if (!prev) return;
-    for (var j = 0; j < prev.items.length; j++) {
-      var drule = prev.items[j];
-      var rule = grammar[drule.ruleNo];
+    prev.items.forEach(function(candidate) {
+      var rule = grammar[candidate.ruleNo];
 
-      if (rule.symbols[drule.pos] == sym) {
-        var candidate = prev.items[j];
+      if (rule.symbols[candidate.pos] == sym) {
         var pos = candidate.pos + 1;
 
         add(cur, {
@@ -394,7 +388,7 @@ function Parser(grammar, debug) {
           kind: 'A'
         });
       }
-    }
+    });
   }
 
   // Complete rules
@@ -405,17 +399,12 @@ function Parser(grammar, debug) {
   function complete(which) {
     var cur = sets[which];
 
-    // I really dislike how I've done alreadyLeo -- not really connected enough
-    // to why what's going on is going on, but it's what I've got for now.
-    var alreadyLeo = false;
-
-    for (var j = 0; j < cur.items.length; j++) {
-      var ruleNo = cur.items[j].ruleNo;
-      var pos = cur.items[j].pos;
-      var origin = cur.items[j].origin;
+    forEachCanExpand(cur.items, function(drule) {
+      var ruleNo = drule.ruleNo;
+      var pos = drule.pos;
+      var origin = drule.origin;
       var sym = grammar[ruleNo].sym;
-      if (!~origin) continue;
-      if (pos < grammar[ruleNo].symbols.length) continue;
+      if (pos < grammar[ruleNo].symbols.length) return;
 
       // Since predictions are stored in compact form, completing them
       // requires realizing them as they are completed.
@@ -425,35 +414,8 @@ function Parser(grammar, debug) {
       // prior rules already confirmed to advance.
       if (!sets[origin - 1]) return;
 
-      // Leo items from prior Earley sets get advanced
-      if (!alreadyLeo) for (var l = 0; l < sets[origin - 1].items.length; l++) {
-        var item = sets[origin - 1].items[l];
-
-        // Non-leo items will be handled below.
-        if (!item.leo) continue;
-        if (bv_bit_test(prediction(sym), nextSymbol(item))) {
-          add(cur, {
-            ruleNo: item.ruleNo,
-            pos: item.pos + 1,
-            origin: item.origin,
-            leo: true,
-            kind: 'L'
-          });
-
-          // We assume that the first Leo item we create is _the_ Leo item,
-          // which _should_ be true in most (all?) cases. This needs validation
-          // and refinement. A Leo item must be unique for a given origin set.
-          alreadyLeo = true;
-          break;
-        }
-      }
-
       // Rules already confirmed and realized in prior Earley sets get advanced
-      for (var k = 0; k < sets[origin - 1].items.length; k++) {
-        var candidate = sets[origin - 1].items[k];
-
-        // Leo items were handled above.
-        if (candidate.leo) continue;
+      sets[origin - 1].items.forEach(function (candidate) {
         if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
           add(cur, {
             ruleNo: candidate.ruleNo,
@@ -462,9 +424,7 @@ function Parser(grammar, debug) {
             kind: 'C'
           });
         }
-      }
-    }
-
+      });
     function realizeCompletablePrediction(predictedRuleNo) {
       // Because predicted items are virtual -- just an entry in a bit set --
       // until realized, operations that scan the details will miss them. We
@@ -479,6 +439,8 @@ function Parser(grammar, debug) {
         });
       }
     }
+    });
+
 
     function nextSymbol(prior) {
       return grammar[prior.ruleNo].symbols[prior.pos];
@@ -529,4 +491,10 @@ function add(set, rule) {
 // determine whether two rules are equal
 function ruleEqual(a, b) {
   return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
+}
+
+function forEachCanExpand(it, cb) {
+  for (var i = 0; i < it.length; i++) {
+    cb(it[i], i);
+  }
 }
