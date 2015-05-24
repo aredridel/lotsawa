@@ -415,8 +415,8 @@ function Parser(grammar, debug) {
       if (!sets[origin - 1]) return;
 
       // Rules already confirmed and realized in prior Earley sets get advanced
-      sets[origin - 1].items.forEach(function (candidate) {
-        if (bv_bit_test(prediction(sym), nextSymbol(candidate))) {
+      sets[origin - 1].items.forEach(function(candidate) {
+        if (sym == nextSymbol(candidate)) {
           add(cur, {
             ruleNo: candidate.ruleNo,
             pos: candidate.pos + 1,
@@ -425,20 +425,21 @@ function Parser(grammar, debug) {
           });
         }
       });
-    function realizeCompletablePrediction(predictedRuleNo) {
-      // Because predicted items are virtual -- just an entry in a bit set --
-      // until realized, operations that scan the details will miss them. We
-      // do this now to save the cost of doing this for predictions that went
-      // nowhere.
-      if (bv_bit_test(prediction(sym), grammar[predictedRuleNo].symbols[0])) {
-        add(cur, {
-          ruleNo: predictedRuleNo,
-          pos: 1,
-          origin: origin,
-          kind: 'P'
-        });
+
+      function realizeCompletablePrediction(predictedRuleNo) {
+        // Because predicted items are virtual -- just an entry in a bit set --
+        // until realized, operations that scan the details will miss them. We
+        // do this now to save the cost of doing this for predictions that went
+        // nowhere.
+        if (sym == grammar[predictedRuleNo].symbols[0]) {
+          add(cur, {
+            ruleNo: predictedRuleNo,
+            pos: 1,
+            origin: origin,
+            kind: 'P'
+          });
+        }
       }
-    }
     });
 
 
@@ -446,9 +447,6 @@ function Parser(grammar, debug) {
       return grammar[prior.ruleNo].symbols[prior.pos];
     }
 
-    function prediction(s) {
-      return grammar.sympred[s];
-    }
   }
 
   function symbolOf(token) {
