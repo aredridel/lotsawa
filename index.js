@@ -524,7 +524,10 @@ function Parser(grammar, debug) {
 
   // Determine leo recursion eligibility for rule and position within it
   function leo(rule, pos, which) {
-    return (rule.right_recursive && rule.symbols.length == pos + 1 && rule.symbols[pos] == rule.sym) ? which : null;
+    return (rule.right_recursive
+    && rule.symbols.length == pos + 1
+    && rule.symbols[pos] == rule.sym // FIXME This needs to check if rule.sym is in a reflexive loop, not just references itself. Indirect recursion.
+      ) ? which : null;
   }
 
 }
