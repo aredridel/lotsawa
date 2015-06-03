@@ -9,7 +9,8 @@
         "strict": 0,
         "no-use-before-define": 0,
         "eqeqeq": 0,
-        "curly": 0
+        "curly": 0,
+        "no-loop-func": 0
     }
 }
 
