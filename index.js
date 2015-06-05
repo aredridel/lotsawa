@@ -151,8 +151,8 @@ function Grammar(rules) {
     return out;
   });
 
-  // Identify what rules are right-recursive
-  // --------------------------------------
+  // Identify what symbols lead to right recursion
+  // ---------------------------------------------
   //
   // The identified rules can use Joop Leo's logic to memoize that right
   // recursion, so there is not O(n^2) entries (a linear summary of the
@@ -160,33 +160,27 @@ function Grammar(rules) {
   // each Earley set, which is also O(n) and so right recursion without Leo
   // optimization is O(n^2))
   function identifyRightRecursion() {
-    var predictable = bitmv.matrix(rules.length, rules.length);
+    var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
 
     // First we build a matrix of what rules directly refer to what other
     // rules by their rightmost symbol
-    rules.forEach(function(r, j) {
-      rules.forEach(function(s, k) {
-        if (last(r.symbols) === s.sym) {
-          bv_bit_set(predictable[j], k);
+    rules.symbols.forEach(function(name, sym) {
+      rules.forEach(function(r) {
+        if (last(r.symbols) === sym) {
+          bv_bit_set(predictable[sym], r.sym);
         }
       });
-
+      bv_bit_set(predictable[sym], sym);
     });
 
     // Then we compute the transitive closure of that matrix, essentially
     // following each recursion fully and annotating it.
     bitmv.transitiveClosure(predictable);
 
-    // Then we check for which rules have their own bit set -- the diagonal
-    // of the matrix. Mark any such rules found.
-    rules.forEach(function(r, j) {
-      if (bv_bit_test(predictable[j], j)) {
-        r.right_recursive = true;
-      }
-    });
+    return predictable;
   }
 
-  identifyRightRecursion();
+  rules.right_recursion = identifyRightRecursion();
 
   return rules;
 }
@@ -524,10 +518,11 @@ function Parser(grammar, debug) {
 
   // Determine leo recursion eligibility for rule and position within it
   function leo(rule, pos, which) {
-    return (rule.right_recursive
-    && rule.symbols.length == pos + 1
-    && rule.symbols[pos] == rule.sym // FIXME This needs to check if rule.sym is in a reflexive loop, not just references itself. Indirect recursion.
-      ) ? which : null;
+    if (rule.symbols.length == pos + 1 && bv_bit_test(grammar.right_recursion[rule.symbols[pos]], rule.sym)) {
+      return which;
+    } else {
+      return null;
+    }
   }
 
 }
