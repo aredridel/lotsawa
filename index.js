@@ -345,7 +345,7 @@ function Parser(grammar, debug) {
           var sym = symbolOf(tok);
           if (!~sym) return;
           if (grammar[ruleNo].symbols[0] != sym) return;
-          if ('leo' in candidate) {
+          if (candidate.leo != null) {
             add(cur, {
               ruleNo: ruleNo,
               pos: 1,
@@ -418,7 +418,7 @@ function Parser(grammar, debug) {
           ruleNo: candidate.ruleNo,
           pos: pos,
           origin: candidate.origin,
-          leo: leo(rule, pos, candidate.leo != null ? candidate.leo : candidate.origin),
+          leo: candidate.leo == null ? null : leo(rule, pos, candidate.leo),
           kind: 'A'
         });
       }
@@ -499,7 +499,7 @@ function Parser(grammar, debug) {
             ruleNo: predictedRuleNo,
             pos: 1,
             origin: origin,
-            kind: 'P'
+            kind: 'R'
           });
         }
       }
