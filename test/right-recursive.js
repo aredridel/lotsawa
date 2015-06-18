@@ -1,7 +1,7 @@
 var Grammar = require('../').Grammar;
 var Rule = require('../').Rule;
 var Ref = require('../').Ref;
-var parse = require('../debug').parse;
+var parse = require('../').parse;
 var Terminal = require('../').Terminal;
 var test = require('tap').test;
 
@@ -14,6 +14,6 @@ var grammar = Grammar([
 ]);
 
 test('parses', function (t) {
-    t.ok(parse(grammar, 'aaaaaaaaaaaaaaaaaa'));
+    t.ok(parse(grammar, 'aaaaaaaaaaaaaaaaa'));
     t.end();
 });

@@ -29,9 +29,9 @@ function dump_dotted_rule(grammar, ent) {
 }
 
 function dump_table(grammar, table) {
-  return '  predict ' + JSON.stringify(bitmv.dumpvn(table.predictions)) + "\n" + table.items.map(function(e) {
-      return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e);
-    }).join('\n');
+  return table.items.map(function(e) {
+    return '  ' + e.ruleNo + ': ' + dump_dotted_rule(grammar, e);
+  }).join('\n');
 }
 
 function dump_grammar(grammar) {
@@ -42,11 +42,18 @@ function dump_grammar(grammar) {
   });
 
   log('symbols');
-  log(bitmv.dump(grammar.sympred));
+  log(grammar.sympred.map(function(e, i) {
+    return bitmv.dumpv(e) + " " + grammar.symbols[i] + "(" + i + ")";
+  }).join("\n"));
 
-  log('predictions_for_symbols');
-  log(grammar.predictions_for_symbols.map(bitmv.dumpv).map(function(e, i) {
-    return e + ' ' + grammar.symbols[i];
+  log('right recursion');
+  log(grammar.right_recursion.map(function (e, i) {
+      return i + ': ' + JSON.stringify(bitmv.dumpvn(e));
+  }).join('\n'));
+
+  log('predictions by symbols');
+  log(grammar.predictions_for_symbols.map(function(e, i) {
+    return i + ":" + JSON.stringify(e);
   }).join('\n'));
 
   return out;

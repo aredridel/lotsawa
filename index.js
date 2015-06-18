@@ -38,10 +38,6 @@ module.exports = {
 // via transitive closures over bit matrices.
 var bitmv = require('bitmv');
 
-// let `bv_or_assign` be the operation of replacing the first argument with
-// the union of the sets
-var bv_or_assign = bitmv.bv_or_assign;
-
 // let `bv_bit_set` be the operation of setting a particular bit in a set.
 var bv_bit_set = bitmv.bv_bit_set;
 
@@ -96,6 +92,20 @@ function Grammar(rules) {
 
   rules.symbols = censusSymbols();
 
+  function collectRulesBySymbol() {
+    var out = [];
+    rules.forEach(function(r, ruleNo) {
+      if (!out[r.sym]) {
+        out[r.sym] = [];
+      }
+      out[r.sym].push(ruleNo);
+
+    });
+    return out;
+  }
+
+  rules.by_symbol = collectRulesBySymbol();
+
   // Build a matrix of what symbols predict what other symbols
   // ---------------------------------------------------------
   //
@@ -119,21 +129,21 @@ function Grammar(rules) {
 
   rules.sympred = generateSymbolMatrix();
 
-  // Build a matrix of what symbols predict what rules
-  // -------------------------------------------------
+  // Build a matrix of what rules get predicted with other rules
+  // -----------------------------------------------------------
   //
   // This is so the Earley prediction step is just a matter of building a set
   // with a couple successive bitwise or operations.
   function generatePredictionMatrix() {
-    var predictable = bitmv.matrix(rules.symbols.length, rules.length);
+    var predictable = bitmv.matrix(rules.length, rules.length);
     rules.forEach(function(r, j) {
       rules.forEach(function(s, k) {
         if (r.symbols[0] != null && r.symbols[0] == s.sym) {
-          bv_bit_set(predictable[r.sym], k);
+          bv_bit_set(predictable[j], k);
         }
       });
 
-      bv_bit_set(predictable[r.sym], j);
+      bv_bit_set(predictable[j], j);
     });
 
     bitmv.transitiveClosure(predictable);
@@ -141,15 +151,20 @@ function Grammar(rules) {
     return predictable;
   }
 
-  rules.predictions_for_symbols = generatePredictionMatrix();
-  rules.predictions_expanded_for_symbols = rules.predictions_for_symbols.map(function(v) {
+  rules.predictions_for_rules = generatePredictionMatrix();
+
+  rules.predictions_for_symbols = rules.symbols.map(function(symName, sym) {
     var out = [];
-    bv_scan(v, function(n) {
-      out.push(n);
+    (rules.by_symbol[sym] || []).forEach(function(rule) {
+      bv_scan(rules.predictions_for_rules[rule], function(ruleNo) {
+        if (!~out.indexOf(ruleNo)) {
+          out.push(ruleNo);
+        }
+      });
     });
-    //console.warn(rules.symbols[i], ':', out.map(function (e) { return rules.symbols[e]; }).join(', '));
     return out;
   });
+
 
   // Identify what symbols lead to right recursion
   // ---------------------------------------------
@@ -170,7 +185,6 @@ function Grammar(rules) {
           bv_bit_set(predictable[sym], r.sym);
         }
       });
-      bv_bit_set(predictable[sym], sym);
     });
 
     // Then we compute the transitive closure of that matrix, essentially
@@ -238,7 +252,7 @@ function parse(grammar, toParse, debug) {
 function Parser(grammar, debug) {
   var sets = [];
 
-  var currentSet = 0;
+  var currentSet = 1;
 
   function handleToken(tok) {
 
@@ -246,18 +260,11 @@ function Parser(grammar, debug) {
       debug('set', currentSet, tok, 'sym', symbolOf(tok));
     }
 
-    // First predictions: what rules are possible at this point in the parse
-    sets[currentSet] = {
-      predictions: null,
+    sets[currentSet] = sets[currentSet] || {
       items: []
     };
 
-    sets[currentSet].predictions = predict(currentSet, tok);
-
-    // Then scan: what rules match at this point in the parse
-    scan(currentSet, tok);
-
-    // Then advance rules already started, seeking completion
+    // Advance rules already started, seeking completion
     advance(currentSet, tok);
 
     // Then find completed rules and carry their derivations forward,
@@ -269,6 +276,14 @@ function Parser(grammar, debug) {
     }
 
     currentSet += 1;
+  }
+
+  initialize();
+  complete(0);
+
+  if (debug) {
+    debug('set', 0);
+    debug(sets, 0);
   }
 
   return {
@@ -322,77 +337,40 @@ function Parser(grammar, debug) {
     return false;
   }
 
-  // Predict which rules are applicable given current input
-  // ------------------------------------------------------
-  //
-  // There is a special case for the first set, since there is no prior input,
-  // just the expectation that we'll parse this grammar.
-  function predict(which, tok) {
-    var predictions = bitmv.vector(grammar.length);
-    var prev = sets[which - 1];
+  function predictCandidate(candidate, which) {
     var cur = sets[which];
-    if (!prev) {
-      bv_or_assign(predictions, grammar.predictions_for_symbols[grammar.symbols.indexOf('_accept')]);
-    } else {
-      prev.items.forEach(function(candidate) {
-        var pos = candidate.pos;
-        var rule = grammar[candidate.ruleNo];
-        if (rule.symbols.length > pos) {
-          bv_or_assign(predictions, grammar.predictions_for_symbols[rule.symbols[pos]]);
-          grammar.predictions_expanded_for_symbols[rule.symbols[pos]].forEach(expandRule);
-        }
-        function expandRule(ruleNo) {
-          var sym = symbolOf(tok);
-          if (!~sym) return;
-          if (grammar[ruleNo].symbols[0] != sym) return;
-          if (candidate.leo != null) {
-            add(cur, {
-              ruleNo: ruleNo,
-              pos: 1,
-              leo: candidate.leo,
-              origin: which,
-              kind: 'Q'
-            });
-          } else {
-            add(cur, {
-              ruleNo: ruleNo,
-              pos: 1,
-              origin: which,
-              kind: 'P'
-            });
-          }
-        }
-
+    if (candidate.pos == 0) return;
+    var rule = grammar[candidate.ruleNo];
+    if (rule.symbols.length > candidate.pos) {
+      grammar.predictions_for_symbols[rule.symbols[candidate.pos]].forEach(expandRule);
+    }
+    function expandRule(ruleNo) {
+      add(cur, {
+        ruleNo: ruleNo,
+        pos: 0,
+        leo: leo(rule, candidate.leo == null ? candidate.origin : candidate.leo),
+        origin: which,
+        kind: 'P'
       });
+      // FIXME: should be leo more times than it is, but not always.
     }
 
-    return predictions;
   }
 
-
-  // Scan a token
-  // ------------
-  //
-  // Given the predictions, see which ones' first symbols match input.
-  function scan(which, tok) {
-    var sym = symbolOf(tok);
-    if (!~sym) return;
-
-    bv_scan(sets[which].predictions, function(ruleNo) {
-      var pos = 1;
-
-      var rule = grammar[ruleNo];
-
-      if (rule.symbols[0] == sym) {
-        add(sets[which], {
-          ruleNo: ruleNo,
-          pos: pos,
-          origin: which,
-          leo: leo(rule, pos, which),
-          kind: 'S'
-        });
-      }
-    });
+  function initialize() {
+    var cur = sets[0] = {
+      items: []
+    };
+    grammar.predictions_for_symbols[grammar.symbols.length - 1].forEach(expandRule);
+    function expandRule(ruleNo) {
+      add(cur, {
+        ruleNo: ruleNo,
+        pos: 0,
+        leo: null,
+        origin: 0,
+        kind: 'I'
+      });
+    }
   }
 
   // Advance prior rules in progress
@@ -414,13 +392,15 @@ function Parser(grammar, debug) {
       if (rule.symbols[candidate.pos] == sym) {
         var pos = candidate.pos + 1;
 
-        add(cur, {
+        var newItem = {
           ruleNo: candidate.ruleNo,
           pos: pos,
           origin: candidate.origin,
-          leo: candidate.leo == null ? null : leo(rule, pos, candidate.leo),
+          leo: candidate.leo != null ? candidate.leo : leo(rule, candidate.origin),
           kind: 'A'
-        });
+        };
+        add(cur, newItem);
+        predictCandidate(newItem, which, candidate);
       }
     });
   }
@@ -440,22 +420,8 @@ function Parser(grammar, debug) {
       var sym = grammar[ruleNo].sym;
       if (pos < grammar[ruleNo].symbols.length) return;
 
-      // Since predictions are stored in compact form, completing them
-      // requires realizing them as they are completed.
-      bv_scan(sets[origin].predictions, realizeCompletablePrediction);
-
-      // If this is the first Earley set being completed, then there are no
-      // prior rules already confirmed to advance.
-      if (!sets[origin - 1]) return;
-
-      // Leo items from prior Earley sets get advanced
-      var alreadyLeo;
-      if (!alreadyLeo) {
-        sets[origin - 1].items.forEach(function(item) {
-
-          if (alreadyLeo) return;
-
-          if (item.leo == null) return;
+      if (drule.leo != null) {
+        sets[drule.leo].items.forEach(function(item) {
 
           // Non-leo items will be handled below.
           if (sym == nextSymbol(item)) {
@@ -465,44 +431,26 @@ function Parser(grammar, debug) {
               origin: item.leo != null ? item.leo : item.origin,
               kind: 'L'
             });
+          }
+        });
+      } else {
 
-            // We assume that the first Leo item we create is _the_ Leo item,
-            // which _should_ be true in most (all?) cases. This needs validation
-            // and refinement. A Leo item must be unique for a given origin set.
-            alreadyLeo = true;
+        // Rules already confirmed and realized in prior Earley sets get advanced
+        sets[origin].items.forEach(function(candidate) {
+
+          if (sym == nextSymbol(candidate)) {
+            var newRule = {
+              ruleNo: candidate.ruleNo,
+              pos: candidate.pos + 1,
+              origin: candidate.origin,
+              kind: 'C'
+            };
+            add(cur, newRule);
+            predictCandidate(newRule, which);
           }
         });
       }
 
-      // Rules already confirmed and realized in prior Earley sets get advanced
-      sets[origin - 1].items.forEach(function(candidate) {
-        // Leo items were handled above.
-        if (candidate.leo != null) return;
-
-        if (sym == nextSymbol(candidate)) {
-          add(cur, {
-            ruleNo: candidate.ruleNo,
-            pos: candidate.pos + 1,
-            origin: candidate.origin,
-            kind: 'C'
-          });
-        }
-      });
-
-      function realizeCompletablePrediction(predictedRuleNo) {
-        // Because predicted items are virtual -- just an entry in a bit set --
-        // until realized, operations that scan the details will miss them. We
-        // do this now to save the cost of doing this for predictions that went
-        // nowhere.
-        if (sym == grammar[predictedRuleNo].symbols[0]) {
-          add(cur, {
-            ruleNo: predictedRuleNo,
-            pos: 1,
-            origin: origin,
-            kind: 'R'
-          });
-        }
-      }
     });
 
 
@@ -517,8 +465,9 @@ function Parser(grammar, debug) {
   }
 
   // Determine leo recursion eligibility for rule and position within it
-  function leo(rule, pos, which) {
-    if (rule.symbols.length == pos + 1 && bv_bit_test(grammar.right_recursion[rule.symbols[pos]], rule.sym)) {
+  function leo(rule, which) {
+      var lastSym = rule.symbols[rule.symbols.length - 1];
+    if (lastSym == rule.sym || bv_bit_test(grammar.right_recursion[rule.sym], lastSym)) {
       return which;
     } else {
       return null;

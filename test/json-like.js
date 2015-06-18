@@ -31,8 +31,8 @@ var grammar = Grammar([
     Rule('pair', [ Ref('string'), Terminal(':'), Ref('value') ]),
     Rule('string', [ Terminal('"'), Ref('inside-string'), Terminal('"') ]),
     Rule('string', [ Terminal('"'), Terminal('"') ]),
-    Rule('inside-string', [ Ref('inside-string'), Terminal('a') ]),
-    Rule('inside-string', [ Terminal('a') ]),
+    Rule('inside-string', [ Terminal('a'), Ref('inside-string') ]),
+    Rule('inside-string', [ Terminal('a') ])
 ]);
 
 test('parses', function(t) {
