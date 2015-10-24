@@ -71,20 +71,20 @@ function Grammar(rules) {
   function censusSymbols() {
     var out = [];
     rules.forEach(function(r) {
-      if (!~out.indexOf(r.name)) {
-        out.push(r.name);
+      if (!~symbolIndexOf(out, r)) {
+        out.push(r);
       }
       r.symbols.forEach(function(s, i) {
-        var symNo = out.indexOf(s.name);
+        var symNo = symbolIndexOf(out, s);
         if (!~symNo) {
           symNo = out.length;
-          out.push(s.name);
+          out.push(s);
         }
 
         r.symbols[i] = symNo;
       });
 
-      r.sym = out.indexOf(r.name);
+      r.sym = symbolIndexOf(out, r);
     });
 
     return out;
@@ -210,6 +210,7 @@ function Grammar(rules) {
 // _{ Name → symbol symbol symbol }_
 function Rule(name, syms) {
   return {
+    kind: 'Rule',
     name: name,
     symbols: syms
   };
@@ -221,6 +222,7 @@ function Rule(name, syms) {
 // This symbol in the rule is a reference to another rule
 function Ref(name) {
   return {
+    kind: 'Rule',
     name: name
   };
 }
@@ -231,6 +233,7 @@ function Ref(name) {
 // This symbol refers to nothing else and is used literally.
 function Terminal(symbol) {
   return {
+    kind: 'Terminal',
     name: symbol,
     terminal: symbol
   };
@@ -461,7 +464,7 @@ function Parser(grammar, debug) {
   }
 
   function symbolOf(token) {
-    return grammar.symbols.indexOf(token);
+    return symbolIndexOf(grammar.symbols, token)
   }
 
   // Determine leo recursion eligibility for rule and position within it
@@ -506,6 +509,27 @@ function add(set, rule) {
 function ruleEqual(a, b) {
   return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
 }
+
+var util = require('util');
+
+// determine if two symbols or a symbol and a token are equal
+function symbolEqual(a, b) {
+  if (a == null) return b == null;
+  if (b == null) return a == null;
+  if (a.kind == b.kind) return a.name == b.name;
+  if (a.kind == 'Rule') return false // rules/refs only match like-kind
+  if (a.kind == 'Terminal') return a.terminal == b;
+  throw new Error('Invalid symbol type: ' + util.inspect(a));
+}
+
+// find the index of the symbol matching a token
+function symbolIndexOf(symbols, token) {
+  for (var ii=0; ii<symbols.length; ++ii) {
+    if (symbolEqual(symbols[ii], token)) return ii;
+  }
+  return -1;
+}
+
 
 function forEachCanExpand(it, cb) {
   for (var i = 0; i < it.length; i++) {
