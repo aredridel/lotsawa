@@ -466,7 +466,7 @@ function Parser(grammar, debug) {
 
   // Determine leo recursion eligibility for rule and position within it
   function leo(rule, which) {
-      var lastSym = rule.symbols[rule.symbols.length - 1];
+    var lastSym = rule.symbols[rule.symbols.length - 1];
     if (lastSym == rule.sym || bv_bit_test(grammar.right_recursion[rule.sym], lastSym)) {
       return which;
     } else {
