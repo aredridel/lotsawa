@@ -235,7 +235,24 @@ function Terminal(symbol) {
   return {
     kind: 'Terminal',
     name: symbol,
-    terminal: symbol
+    terminal: symbol,
+    match: function (other) { return symbol == other }
+  };
+}
+
+Terminal.charset = function (charset) {
+  var charset_re;
+  if (charset instanceof RegExp) {
+    charset_re = new RegExp('^' + charset.source + '$');
+  } else {
+    charset_re = new RegExp('^[' + charset + ']$');
+  }
+  return {
+    kind: 'Terminal',
+    name: 'Charset:' + charset,
+    match: function (other) {
+      return charset_re.test(other)
+    }
   };
 }
 
@@ -518,7 +535,7 @@ function symbolEqual(a, b) {
   if (b == null) return a == null;
   if (a.kind == b.kind) return a.name == b.name;
   if (a.kind == 'Rule') return false // rules/refs only match like-kind
-  if (a.kind == 'Terminal') return a.terminal == b;
+  if (a.kind == 'Terminal') return a.match(b);
   throw new Error('Invalid symbol type: ' + util.inspect(a));
 }
 
