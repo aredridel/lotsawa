@@ -547,7 +547,7 @@ function symbolIndexOf(symbols, token) {
   return -1;
 }
 
-
+// Iterate a list that may have elements added as we do so
 function forEachCanExpand(it, cb) {
   for (var i = 0; i < it.length; i++) {
     cb(it[i], i);
