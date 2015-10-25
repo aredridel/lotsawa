@@ -3,10 +3,10 @@ var bitmv = require('bitmv');
 var parse = require('./').parse;
 
 function dump_rule(grammar, rule) {
-  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(display).join(' ')) + chalk.white('}') + (rule.right_recursive ? chalk.magenta(" right-recursive") : '');
+  return chalk.white('{') + chalk.yellow(rule.name) + chalk.white(' → ') + chalk.cyan(rule.symbols.map(displaySymbol).join(' ')) + chalk.white('}') + (rule.right_recursive ? chalk.magenta(" right-recursive") : '');
 
-  function display(e) {
-    return grammar.symbols[e];
+  function displaySymbol(e) {
+    return grammar.symbols[e].terminal || grammar.symbols[e].name;
   }
 }
 
@@ -18,13 +18,13 @@ function dump_dotted_rule(grammar, ent) {
     chalk.white(' {') +
     chalk.yellow(rule.name) +
     chalk.white(' → ') +
-    chalk.cyan(rule.symbols.slice(0, ent.pos).map(display).join(' ')) +
+    chalk.cyan(rule.symbols.slice(0, ent.pos).map(displaySymbol).join(' ')) +
     chalk.red('•') +
-    chalk.cyan(rule.symbols.slice(ent.pos).map(display).join(' ')) +
+    chalk.cyan(rule.symbols.slice(ent.pos).map(displaySymbol).join(' ')) +
     chalk.white('}');
 
-  function display(e) {
-    return grammar.symbols[e];
+  function displaySymbol(e) {
+    return grammar.symbols[e].terminal || grammar.symbols[e].name;
   }
 }
 
@@ -43,7 +43,7 @@ function dump_grammar(grammar) {
 
   log('symbols');
   log(grammar.sympred.map(function(e, i) {
-    return bitmv.dumpv(e) + " " + grammar.symbols[i] + "(" + i + ")";
+    return bitmv.dumpv(e) + " " + displaySymbol(i) + "(" + i + ")";
   }).join("\n"));
 
   log('right recursion');
@@ -59,6 +59,10 @@ function dump_grammar(grammar) {
   return out;
   function log(ln) {
     out += ln + "\n";
+  }
+
+  function displaySymbol(e) {
+    return grammar.symbols[e].terminal || grammar.symbols[e].name;
   }
 }
 
