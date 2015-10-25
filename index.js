@@ -244,7 +244,7 @@ function parse(grammar, toParse, debug) {
     p.push(toParse[i]);
   }
 
-  return p.success();
+  return p.success() && p;
 }
 
 // Parsing
@@ -291,6 +291,9 @@ function Parser(grammar, debug) {
     success: function() {
       // The parse succeeds if the accept rule is present in the final Earley set.
       return success(last(sets));
+    },
+    tree: function () {
+      return tree(0, currentSet - 1);
     }
   };
 
@@ -314,6 +317,41 @@ function Parser(grammar, debug) {
     }
     tab.items.forEach(function(dr) {
       if (dr.origin === 0 &&
+        dr.ruleNo == grammar.acceptRule &&
+        dr.pos == grammar[grammar.acceptRule].symbols.length) {
+        matches++;
+      }
+    });
+
+    if (matches === 0) {
+      if (debug) {
+        debug('parse failed');
+      }
+    } else if (matches == 1) {
+      if (debug) {
+        debug('parse succeeded');
+      }
+      return true;
+    } else {
+      if (debug) {
+        debug('parse was ambiguous');
+      }
+    }
+    return false;
+  }
+
+  function tree(n, m) {
+      var tab = sets[m];
+      console.warn(arguments, sets);
+    var matches = 0;
+    if (currentSet == 0 && !tab) {
+      if (debug) {
+        debug('null parse counts as success');
+      }
+      return {};
+    }
+    tab.items.forEach(function(dr) {
+      if (dr.origin === n &&
         dr.ruleNo == grammar.acceptRule &&
         dr.pos == grammar[grammar.acceptRule].symbols.length) {
         matches++;
@@ -394,6 +432,7 @@ function Parser(grammar, debug) {
 
         var newItem = {
           ruleNo: candidate.ruleNo,
+          prev: candidate,
           pos: pos,
           origin: candidate.origin,
           leo: candidate.leo != null ? candidate.leo : leo(rule, candidate.origin),
@@ -427,6 +466,7 @@ function Parser(grammar, debug) {
           if (sym == nextSymbol(item)) {
             add(cur, {
               ruleNo: item.ruleNo,
+              prev: candidate,
               pos: item.pos + 1,
               origin: item.leo != null ? item.leo : item.origin,
               kind: 'L'

@@ -11,4 +11,6 @@ var grammar = Grammar([
   Rule('next', [ Terminal('a'), Terminal('a'), Ref('start') ])
 ]);
 
-debug.parse(grammar, 'aaaaaaaaa');
+var p = debug.parse(grammar, 'aaaaaaaaa');
+
+console.log(p.tree());
