@@ -1,0 +1,10 @@
+[00:51:38]  <jeffreykegler> You may have to get to a lower layer of them, because that top layers undo the Leo memoization in order to be "helpful"
+[00:53:40]  <Aria>  Ah fun.
+[00:53:47]  <Aria>  Makes sense, but fun.
+[00:54:17]  <Aria>  Are the trailheads the first items that recurse, at the symbol that recurses, or the place the rule is scanned first that could recurse?
+[00:54:52]  <jeffreykegler> Marpa::R2::show_earley_set*
+[00:55:07]  <jeffreykegler> Marpa::R2::Recognizer::show_earley_sets
+[00:55:31]  <Aria>  Awesome. That will be super useful.
+[00:55:48]  <jeffreykegler> Those are the low-level undocumented diagnostics -- it will be some trouble to figure out their notation, but probably worth it.
+[00:56:11]  <jeffreykegler> Because it will give you the benefit of crafting your own examples.
+[00:56:11]  <Aria>  Can't be much worse than the notation in mine!
