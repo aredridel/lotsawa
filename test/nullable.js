@@ -5,12 +5,12 @@ var Terminal = require('../').Terminal;
 var test = require('tap').test;
 
 var grammar = Grammar([
-    Rule('start', [ Terminal('a') ]),
-    Rule('start', [ ])
+  Rule('start', [Terminal('a')]),
+  Rule('start', [])
 ]);
 
-test('parses', function (t) {
-    t.ok(parse(grammar, 'a'));
-    t.ok(parse(grammar, ''));
-    t.end();
+test('parses', function(t) {
+  t.ok(parse(grammar, 'a'));
+  t.ok(parse(grammar, ''));
+  t.end();
 });

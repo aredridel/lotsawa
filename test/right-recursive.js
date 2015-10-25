@@ -6,14 +6,14 @@ var Terminal = require('../').Terminal;
 var test = require('tap').test;
 
 var grammar = Grammar([
-    Rule('start', [ Ref('A') ]),
-    Rule('A', [ Terminal('a'), Ref('B') ]),
-    Rule('A', [ Terminal('a') ]),
-    Rule('B', [ Terminal('a'), Ref('A') ]),
-    Rule('B', [ Terminal('a') ])
+  Rule('start', [Ref('A')]),
+  Rule('A', [Terminal('a'), Ref('B')]),
+  Rule('A', [Terminal('a')]),
+  Rule('B', [Terminal('a'), Ref('A')]),
+  Rule('B', [Terminal('a')])
 ]);
 
-test('parses', function (t) {
-    t.ok(parse(grammar, 'aaaaaaaaaaaaaaaaa'));
-    t.end();
+test('parses', function(t) {
+  t.ok(parse(grammar, 'aaaaaaaaaaaaaaaaa'));
+  t.end();
 });

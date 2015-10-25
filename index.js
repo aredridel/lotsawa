@@ -236,11 +236,13 @@ function Terminal(symbol) {
     kind: 'Terminal',
     name: symbol,
     terminal: symbol,
-    match: function (other) { return symbol == other }
+    match: function(other) {
+      return symbol == other
+    }
   };
 }
 
-Terminal.charset = function (charset) {
+Terminal.charset = function(charset) {
   var charset_re;
   if (charset instanceof RegExp) {
     charset_re = new RegExp('^' + charset.source + '$');
@@ -250,7 +252,7 @@ Terminal.charset = function (charset) {
   return {
     kind: 'Terminal',
     name: 'Charset:' + charset,
-    match: function (other) {
+    match: function(other) {
       return charset_re.test(other)
     }
   };
@@ -281,7 +283,7 @@ function Parser(grammar, debug) {
     }
 
     sets[currentSet] = sets[currentSet] || {
-      items: []
+        items: []
     };
 
     // Advance rules already started, seeking completion
@@ -372,7 +374,7 @@ function Parser(grammar, debug) {
         origin: which,
         kind: 'P'
       });
-      // FIXME: should be leo more times than it is, but not always.
+    // FIXME: should be leo more times than it is, but not always.
     }
 
   }
@@ -473,7 +475,6 @@ function Parser(grammar, debug) {
 
     });
 
-
   }
 
   function nextSymbol(prior) {
@@ -495,6 +496,7 @@ function Parser(grammar, debug) {
   }
 
 }
+
 
 // Unimportant bits
 // ================
@@ -541,7 +543,7 @@ function symbolEqual(a, b) {
 
 // find the index of the symbol matching a token
 function symbolIndexOf(symbols, token) {
-  for (var ii=0; ii<symbols.length; ++ii) {
+  for (var ii = 0; ii < symbols.length; ++ii) {
     if (symbolEqual(symbols[ii], token)) return ii;
   }
   return -1;

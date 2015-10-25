@@ -47,8 +47,8 @@ function dump_grammar(grammar) {
   }).join("\n"));
 
   log('right recursion');
-  log(grammar.right_recursion.map(function (e, i) {
-      return i + ': ' + JSON.stringify(bitmv.dumpvn(e));
+  log(grammar.right_recursion.map(function(e, i) {
+    return i + ': ' + JSON.stringify(bitmv.dumpvn(e));
   }).join('\n'));
 
   log('predictions by symbols');

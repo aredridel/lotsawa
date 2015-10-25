@@ -6,11 +6,11 @@ var Terminal = require('../').Terminal;
 var test = require('tap').test;
 
 var grammar = Grammar([
-    Rule('start', [ Terminal('a') ])
+  Rule('start', [Terminal('a')])
 ]);
 
-test('parses', function (t) {
-    t.notOk(parse(grammar, 'b'));
-    t.notOk(parse(grammar, 'aa'));
-    t.end();
+test('parses', function(t) {
+  t.notOk(parse(grammar, 'b'));
+  t.notOk(parse(grammar, 'aa'));
+  t.end();
 });
