@@ -6,7 +6,7 @@
   "author": "Aria Stewart <aredridel@dinhe.net>",
   "license": "ISC",
   "dependencies": {
-    "bitmv": "^3.0.0",
+    "bitmv": "^3.1.1",
     "chalk": "^1.1.3"
   },
   "scripts": {
