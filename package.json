@@ -17,5 +17,18 @@
     "docco": "^0.7.0",
     "esformatter": "^0.7.3",
     "tap": "^1.0.4"
+  },
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": 6
+    },
+    "rules": {
+      "valid-typeof": "error",
+      "no-undef": "error"
+    },
+    "env": {
+      "browser": true,
+      "node": true
+    }
   }
 }

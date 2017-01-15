@@ -36,14 +36,14 @@ module.exports = {
 // The whole library uses a lot of set operations, represented by vectors,
 // and some precomputation of what items refer to other items, calculated
 // via transitive closures over bit matrices.
-var bitmv = require('bitmv');
+const bitmv = require('bitmv');
 
 // let `bv_bit_set` be the operation of setting a particular bit in a set.
-var bv_bit_set = bitmv.bv_bit_set;
+const bv_bit_set = bitmv.bv_bit_set;
 
 // let `bv_bit_test` be the operation of determining whether a particular bit
 // is in the set.
-var bv_bit_test = bitmv.bv_bit_test;
+const bv_bit_test = bitmv.bv_bit_test;
 
 function Grammar(rules) {
   // Processing The Grammar
@@ -69,13 +69,13 @@ function Grammar(rules) {
   // so they can be numbered instead of referred to by name, and therefore
   // their presence can be represented by a single bit in a set.
   function censusSymbols() {
-    var out = [];
+    const out = [];
     rules.forEach(function(r) {
       if (!~symbolIndexOf(out, r)) {
         out.push(r);
       }
       r.symbols.forEach(function(s, i) {
-        var symNo = symbolIndexOf(out, s);
+        let symNo = symbolIndexOf(out, s);
         if (!~symNo) {
           symNo = out.length;
           out.push(s);
@@ -93,7 +93,7 @@ function Grammar(rules) {
   rules.symbols = censusSymbols();
 
   function collectRulesBySymbol() {
-    var out = [];
+    const out = [];
     rules.forEach(function(r, ruleNo) {
       if (!out[r.sym]) {
         out[r.sym] = [];
@@ -112,7 +112,7 @@ function Grammar(rules) {
   // so we can know what items we're looking for given a symbol, and
   // manipulate that with the and and or of bit sets.
   function generateSymbolMatrix() {
-    var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
+    const predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
 
     rules.symbols.forEach(function(name, sym) {
       rules.forEach(function(r) {
@@ -135,7 +135,7 @@ function Grammar(rules) {
   // This is so the Earley prediction step is just a matter of building a set
   // with a couple successive bitwise or operations.
   function generatePredictionMatrix() {
-    var predictable = bitmv.matrix(rules.length, rules.length);
+    const predictable = bitmv.matrix(rules.length, rules.length);
     rules.forEach(function(r, j) {
       rules.forEach(function(s, k) {
         if (r.symbols[0] != null && r.symbols[0] == s.sym) {
@@ -154,7 +154,7 @@ function Grammar(rules) {
   rules.predictions_for_rules = generatePredictionMatrix();
 
   rules.predictions_for_symbols = rules.symbols.map(function(symName, sym) {
-    var out = [];
+    const out = [];
     (rules.by_symbol[sym] || []).forEach(function(rule) {
       bv_scan(rules.predictions_for_rules[rule], function(ruleNo) {
         if (!~out.indexOf(ruleNo)) {
@@ -175,7 +175,7 @@ function Grammar(rules) {
   // each Earley set, which is also O(n) and so right recursion without Leo
   // optimization is O(n^2))
   function identifyRightRecursion() {
-    var predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
+    const predictable = bitmv.matrix(rules.symbols.length, rules.symbols.length);
 
     // First we build a matrix of what rules directly refer to what other
     // rules by their rightmost symbol
@@ -243,7 +243,7 @@ function Terminal(symbol) {
 }
 
 Terminal.charset = function(charset) {
-  var charset_re;
+  let charset_re;
   if (charset instanceof RegExp) {
     charset_re = new RegExp('^' + charset.source + '$');
   } else {
@@ -260,9 +260,9 @@ Terminal.charset = function(charset) {
 
 // A convenience parse function
 function parse(grammar, toParse, debug) {
-  var p = Parser(grammar, debug);
+  const p = Parser(grammar, debug);
   // For each input symbol, generate an Earley set
-  for (var i = 0; i < toParse.length; i++) {
+  for (let i = 0; i < toParse.length; i++) {
     p.push(toParse[i]);
   }
 
@@ -272,9 +272,9 @@ function parse(grammar, toParse, debug) {
 // Parsing
 // =======
 function Parser(grammar, debug) {
-  var sets = [];
+  const sets = [];
 
-  var currentSet = 1;
+  let currentSet = 1;
 
   function handleToken(tok) {
 
@@ -327,7 +327,7 @@ function Parser(grammar, debug) {
   // At the moment, an ambiguous parse is considered unsuccessful, but this is
   // an avenue for refinement.
   function success(tab) {
-    var matches = 0;
+    let matches = 0;
     if (currentSet == 0 && !tab) {
       if (debug) {
         debug('null parse counts as success');
@@ -360,9 +360,9 @@ function Parser(grammar, debug) {
   }
 
   function predictCandidate(candidate, which) {
-    var cur = sets[which];
+    const cur = sets[which];
     if (candidate.pos == 0) return;
-    var rule = grammar[candidate.ruleNo];
+    const rule = grammar[candidate.ruleNo];
     if (rule.symbols.length > candidate.pos) {
       grammar.predictions_for_symbols[rule.symbols[candidate.pos]].forEach(expandRule);
     }
@@ -380,7 +380,7 @@ function Parser(grammar, debug) {
   }
 
   function initialize() {
-    var cur = sets[0] = {
+    const cur = sets[0] = {
       items: []
     };
     grammar.predictions_for_symbols[grammar.symbols.length - 1].forEach(expandRule);
@@ -401,20 +401,20 @@ function Parser(grammar, debug) {
   // Since there are uncompleted rules in progress during most steps, this will
   // match those to input and step them along, recording the progress.
   function advance(which, tok) {
-    var sym = symbolOf(tok);
+    const sym = symbolOf(tok);
     if (!~sym) return;
 
-    var prev = sets[which - 1];
-    var cur = sets[which];
+    const prev = sets[which - 1];
+    const cur = sets[which];
 
     if (!prev) return;
     prev.items.forEach(function(candidate) {
-      var rule = grammar[candidate.ruleNo];
+      const rule = grammar[candidate.ruleNo];
 
       if (rule.symbols[candidate.pos] == sym) {
-        var pos = candidate.pos + 1;
+        const pos = candidate.pos + 1;
 
-        var newItem = {
+        const newItem = {
           ruleNo: candidate.ruleNo,
           pos: pos,
           origin: candidate.origin,
@@ -433,13 +433,13 @@ function Parser(grammar, debug) {
   // When a rule has been completed, its causing rules may also be advanced or
   // completed. We process those here.
   function complete(which) {
-    var cur = sets[which];
+    const cur = sets[which];
 
     forEachCanExpand(cur.items, function(drule) {
-      var ruleNo = drule.ruleNo;
-      var pos = drule.pos;
-      var origin = drule.origin;
-      var sym = grammar[ruleNo].sym;
+      const ruleNo = drule.ruleNo;
+      const pos = drule.pos;
+      const origin = drule.origin;
+      const sym = grammar[ruleNo].sym;
       if (pos < grammar[ruleNo].symbols.length) return;
 
       if (drule.leo != null) {
@@ -461,7 +461,7 @@ function Parser(grammar, debug) {
         sets[origin].items.forEach(function(candidate) {
 
           if (sym == nextSymbol(candidate)) {
-            var newRule = {
+            const newRule = {
               ruleNo: candidate.ruleNo,
               pos: candidate.pos + 1,
               origin: candidate.origin,
@@ -487,7 +487,7 @@ function Parser(grammar, debug) {
 
   // Determine leo recursion eligibility for rule and position within it
   function leo(rule, which) {
-    var lastSym = rule.symbols[rule.symbols.length - 1];
+    const lastSym = rule.symbols[rule.symbols.length - 1];
     if (lastSym == rule.sym || bv_bit_test(grammar.right_recursion[rule.sym], lastSym)) {
       return which;
     } else {
@@ -508,7 +508,7 @@ function last(arr) {
 
 // Scan a bit set and call the iterator function for each item in the set
 function bv_scan(vec, iter) {
-  for (var i = 0; i < vec.bits; i++) {
+  for (let i = 0; i < vec.bits; i++) {
     if (bitmv.bv_bit_test(vec, i)) {
       iter(i);
     }
@@ -517,7 +517,7 @@ function bv_scan(vec, iter) {
 
 // Add a rule to an Earley set, detecting duplicates
 function add(set, rule) {
-  for (var l = 0; l < set.items.length; l++) {
+  for (let l = 0; l < set.items.length; l++) {
     if (ruleEqual(set.items[l], rule)) return;
   }
 
@@ -529,7 +529,7 @@ function ruleEqual(a, b) {
   return a.ruleNo == b.ruleNo && a.pos == b.pos && a.origin == b.origin;
 }
 
-var util = require('util');
+const util = require('util');
 
 // determine if two symbols or a symbol and a token are equal
 function symbolEqual(a, b) {
@@ -543,7 +543,7 @@ function symbolEqual(a, b) {
 
 // find the index of the symbol matching a token
 function symbolIndexOf(symbols, token) {
-  for (var ii = 0; ii < symbols.length; ++ii) {
+  for (let ii = 0; ii < symbols.length; ++ii) {
     if (symbolEqual(symbols[ii], token)) return ii;
   }
   return -1;
@@ -551,7 +551,7 @@ function symbolIndexOf(symbols, token) {
 
 // Iterate a list that may have elements added as we do so
 function forEachCanExpand(it, cb) {
-  for (var i = 0; i < it.length; i++) {
+  for (let i = 0; i < it.length; i++) {
     cb(it[i], i);
   }
 }
